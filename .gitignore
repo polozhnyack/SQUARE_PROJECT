@@ -7,3 +7,6 @@ session_name.session
 users.db
 
 .DS_Store
+
+/JSON/*
+!/JSON/
