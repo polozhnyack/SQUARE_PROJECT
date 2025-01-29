@@ -4,7 +4,7 @@ from aiogram.types import InputMediaPhoto, InputMediaVideo, InputMediaAnimation
 from aiogram.fsm.context import FSMContext
 import asyncio
 from aiogram import exceptions 
-from text.phrases import water_mark
+from templates.phrases import water_mark
 import logging
 
 from db.db import Database

@@ -4,11 +4,10 @@ from bs4 import BeautifulSoup
 import random
 from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji, PHONE, TOKEN
 from db.db import Database
-from UserBotClient import userbot_manager
 
-from modules.mediadownloader import MediaDownloader
-from modules.fetcher import SeleniumFetcher
-from utils.MetadataSaver import MetadataSaver
+from src.modules.mediadownloader import MediaDownloader
+from src.modules.fetcher import SeleniumFetcher
+from src.utils.MetadataSaver import MetadataSaver
 
 
 from aiogram.types import Message

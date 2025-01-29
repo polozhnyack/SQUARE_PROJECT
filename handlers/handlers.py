@@ -3,12 +3,10 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from .state.state import waiting
-from src.AnonymousSpam.SpamFunc import run_spam
 from db.ModuleControl import ModuleControl
-from src.AnonymousSpam.SpamFunc import run_spam
-from utils.urlchek import URLChecker
-from modules.media_selector import selector
-from text.phrases import RECOMEND_MSG
+from src.utils.urlchek import URLChecker
+from src.modules.media_selector import selector
+from templates.phrases import RECOMEND_MSG
 
 import logging
 

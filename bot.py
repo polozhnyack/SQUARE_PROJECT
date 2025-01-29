@@ -7,7 +7,7 @@ from handlers.register import register_handlers
 from db.db import Database
 from config.config import TOKEN, ADMIN
 from db.ModuleControl import ModuleControl
-from services.proposal_bot import get_proposal_bot
+from src.services.proposal_bot import get_proposal_bot
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -25,7 +25,7 @@ async def on_startup():
         db = Database()  # Создание экземпляра базы данных
         mc = ModuleControl()
 
-        mc.update_module_status('SpamAnonChat', True)
+        mc.update_module_status('SpamAnonChat', False)
 
         # CronTasks()
         # VideoScheduler()

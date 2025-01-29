@@ -1,12 +1,12 @@
 
 from aiogram import types
 from aiogram.fsm.context import FSMContext
-from services.porno365 import porno365_main
-from services.sosalkino import sosalkino
-from utils.urlchek import URLChecker
+from src.services.porno365 import porno365_main
+from src.services.sosalkino import sosalkino
+from src.utils.urlchek import URLChecker
 
-from modules.media_selector import selector
-from text.phrases import RECOMEND_MSG
+from src.modules.media_selector import selector
+from templates.phrases import RECOMEND_MSG
 from config.config import bot
 
 import logging

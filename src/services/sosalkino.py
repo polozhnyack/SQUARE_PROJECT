@@ -16,10 +16,10 @@ import re
 
 from tqdm import tqdm
 
-from utils.find_tags import fetch_tags
-from modules.mediadownloader import MediaDownloader
-from modules.fetcher import SeleniumFetcher
-from utils.MetadataSaver import MetadataSaver
+from src.utils.find_tags import fetch_tags
+from src.modules.mediadownloader import MediaDownloader
+from src.modules.fetcher import SeleniumFetcher
+from src.utils.MetadataSaver import MetadataSaver
 
 
 from config.config import bot, DELAY_EDIT_MESSAGE

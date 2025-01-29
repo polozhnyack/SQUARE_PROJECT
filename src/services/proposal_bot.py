@@ -7,7 +7,7 @@ from aiogram import Router
 
 from config.config import PROPOSAL_BOT_TOKEN, CHANNEL_ID, ADMIN as ADMIN_ID
 from Buttons.inlinebtns import get_admin_buttons
-from text.phrases import water_mark, start_proposal_text, watermark_proposal
+from templates.phrases import water_mark, start_proposal_text, watermark_proposal
 
 import sqlite3
 import re
