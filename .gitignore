@@ -7,8 +7,3 @@ session_name.session
 users.db
 
 .DS_Store
-
-test.py
-test_link.py
-update_subs.py
-UserBotClient.py
