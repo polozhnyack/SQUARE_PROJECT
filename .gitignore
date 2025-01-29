@@ -1,0 +1,10 @@
+/venv
+config/.env
+__pycache__/
+JSON/
+
+session_name.session
+
+users.db
+
+.DS_Store
