@@ -7,6 +7,8 @@ from db.db import Database
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
+from src.utils.cleaner import clear_directory
+from src.utils.resizer_img import scale_img
 
 from googletrans import Translator as GoogleTrans
 
@@ -15,6 +17,7 @@ from telethon import TelegramClient
 from telethon.types import DocumentAttributeVideo
 
 from config.config import bot, DELAY_EDIT_MESSAGE
+from config.settings import setup_logger
 
 import time
 import re
@@ -24,10 +27,8 @@ import asyncio
 from tqdm import tqdm
 import sys
 from datetime import datetime
-
 import ffmpeg
-
-from config.settings import setup_logger
+from urllib.parse import urlparse
 
 logger = setup_logger()
 
@@ -75,44 +76,6 @@ async def parse(html):
         return results
     except:
         return False
-
-
-
-async def clear_directory(directory):
-    """Удаляет все файлы в указанной директории."""
-    try:
-        for filename in os.listdir(directory):
-            file_path = os.path.join(directory, filename)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-                logger.info(f"Deleted file: {file_path}")
-        logger.info(f"Successfully cleared directory: {directory}")
-    except Exception as e:
-        logger.error(f"Failed to clear directory {directory}: {e}")
-
-async def scale_image_to_video_resolution(image_path, output_image_path):
-    """Масштабирует изображение до разрешения 360p (640x360) с использованием OpenCV."""
-    try:
-        # Разрешение 360p
-        width, height = 1280, 720
-
-        # Открытие изображения
-        img = cv2.imread(image_path)
-        if img is None:
-            raise FileNotFoundError(f"Image file not found: {image_path}")
-        
-        # Изменение размера изображения
-        resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LANCZOS4)
-        # Сохранение изображения
-        cv2.imwrite(output_image_path, resized_img)
-
-        logger.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
-        return True
-    except Exception as e:
-        logger.error(f"An error occurred while scaling the image: {str(e)}")
-        return False
-    
-from urllib.parse import urlparse
     
 def extract_movie_id(url: str, domain_keyword: str = "porno365") -> str:
     """
@@ -141,19 +104,15 @@ async def porno365_main(chat_id, link=None):
 
     metadata = MetadataSaver()
     video_id = extract_movie_id(link)
-
     chat = chat_id
-
     url = link
-
     fetcher = SeleniumFetcher(wait_time=2)
-
     html = fetcher.fetch_html(url)
+
     if html is None:
         return link
 
     resized_img_path = f'media/video/{video_id}_resized_img.jpg'
-    save_directory = 'media/video'
 
     info = await parse(html)
 
@@ -177,7 +136,7 @@ async def porno365_main(chat_id, link=None):
 
         await downloader.cleanup()
 
-        await scale_image_to_video_resolution(image_path=img_file_path, output_image_path=resized_img_path)
+        await scale_img(image_path=img_file_path, output_image_path=resized_img_path)
 
         tags_list = [tag.strip() for tag in tags.split(',')]
 
@@ -204,8 +163,7 @@ async def porno365_main(chat_id, link=None):
             translated_tags.append(f"#{translated_tag}")
 
         formatted_tags = ', '.join(translated_tags)
-        # title_en = GoogleTranslator(source='auto', target='en').translate(title)
-        # description_en = GoogleTranslator(source='auto', target='en').translate(description)
+
 
         try:
             title_en = GoogleTranslator(source='auto', target='en').translate(title)

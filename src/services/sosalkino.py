@@ -1,23 +1,27 @@
 import time
+import cv2
+from datetime import datetime
+import random
+from urllib.parse import urlparse
 import os
 
-from datetime import datetime
+import ffmpeg
+from telethon import TelegramClient
+from telethon.tl.types import DocumentAttributeVideo
 
 from bs4 import BeautifulSoup
-
-import random
+from deep_translator import GoogleTranslator
 
 from src.utils.find_tags import fetch_tags
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
+from src.utils.cleaner import clear_directory
+from src.utils.resizer_img import scale_img
 
-
+from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji
 from config.config import bot, DELAY_EDIT_MESSAGE
 from config.settings import setup_logger
-
-from deep_translator import GoogleTranslator
-
 
 logger = setup_logger()
 
@@ -140,55 +144,6 @@ async def parse(url, chat_id):
     # Возвращаем None, если произошла ошибка или нет данных
     return None, None, None, None, None
 
-import cv2
-
-from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji
-
-
-import os
-import ffmpeg
-from telethon import TelegramClient
-from telethon.tl.types import DocumentAttributeVideo
-
-
-async def scale_image_to_video_resolution(image_path, output_image_path):
-    """Масштабирует изображение до разрешения 360p (640x360) с использованием OpenCV."""
-    try:
-        # Разрешение 360p
-        width, height = 640, 360
-
-        # Открытие изображения
-        img = cv2.imread(image_path)
-        if img is None:
-            raise FileNotFoundError(f"Image file not found: {image_path}")
-        
-        # Изменение размера изображения
-        resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LANCZOS4)
-        # Сохранение изображения
-        cv2.imwrite(output_image_path, resized_img)
-
-        logger.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
-        return True
-    except Exception as e:
-        logger.error(f"An error occurred while scaling the image: {str(e)}")
-        return False
-
-def clear_directory(directory):
-    """Удаляет все файлы в указанной директории."""
-    try:
-        for filename in os.listdir(directory):
-            file_path = os.path.join(directory, filename)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-                logger.info(f"Deleted file: {file_path}")
-        logger.info(f"Successfully cleared directory: {directory}")
-    except Exception as e:
-        logger.error(f"Failed to clear directory {directory}: {e}")
-
-import os
-import re
-from urllib.parse import urlparse
-
 async def sosalkino(url, chat_id):
 
     chat = chat_id
@@ -218,7 +173,7 @@ async def sosalkino(url, chat_id):
     # await save_metadata(url, video_path, img_path, title)
 
     resized_img_path = f'media/video/{img_id}_resized_img.jpg'
-    success = await scale_image_to_video_resolution(img_path, resized_img_path)
+    success = await scale_img(img_path, resized_img_path)
     if not success:
         logger.error("Failed to scale image to video resolution.")
         return
@@ -286,5 +241,5 @@ async def sosalkino(url, chat_id):
             await bot.delete_message(chat_id=chat, message_id=progress_state["progress_message"].message_id)
 
     await client.disconnect()
-    clear_directory('media/video')
+    await clear_directory('media/video')
     return True
