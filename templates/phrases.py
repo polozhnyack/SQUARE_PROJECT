@@ -1,6 +1,3 @@
-good_morning_phrases = []
-good_night_phrases = []
-
 import random
 from config.config import LUSTBOT_LINK
 
@@ -83,19 +80,6 @@ However, please note that sending *prohibited or inappropriate content*:
 
 Simply type your message or attach media, and we’ll forward it as a suggestion\.
 Thank you for contributing\! 🙏
-"""
-
-AD_MESSAGE = """
-**PROMO CODE**: `BESTLUST`
-"""
-
-LUSTCHAT = r"""🔥 **Welcome to LUSTCHAT 18\+** 🔞❗
-
-_Discuss the hottest topics without limits._ 
-
-❗❗ Adults only 😏
-
-👇👇👇
 """
 
 
