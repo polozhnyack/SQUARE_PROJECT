@@ -7,7 +7,7 @@ class URLChecker:
         self.data = []
 
     def _load_data(self, filename: str):
-        # Загружаем данные из файла, если файл существует
+        """Загружает данные из файла, если файл существует."""
         if os.path.exists(filename):
             with open(filename, "r", encoding="utf-8") as file:
                 try:
@@ -17,22 +17,38 @@ class URLChecker:
         else:
             self.data = []
 
-    def check_and_save_url(self, url: str, filename: str = None) -> bool:
-        # Загружаем данные из указанного файла
+    def check_url(self, url: str, filename: str) -> bool:
+        """Проверяет, есть ли URL в списке."""
         self._load_data(filename)
+        return url not in self.data
 
-        # Если URL уже существует в данных, возвращаем False
-        if url in self.data:
-            return False
-        
-        self.data.append(url)
+    def add_url(self, url: str):
+        """Добавляет URL в список без сохранения."""
+        if url not in self.data:
+            self.data.append(url)
+            if len(self.data) > self.max_links:
+                self.data = self.data[-self.max_links:]
+            return True
+        return False
 
-        # Обрезаем список, если превышен лимит
-        if len(self.data) > self.max_links:
-            self.data = self.data[-self.max_links:]
-
-
-        # Сохраняем данные в файл с уникальным именем
+    def save_data(self, filename: str):
+        """Сохраняет список URL в файл."""
         with open(filename, "w", encoding="utf-8") as file:
             json.dump(self.data, file, indent=4, ensure_ascii=False)
-        return True
+
+    def save_url(self, url: str, filename: str) -> bool:
+        """Добавляет URL и сохраняет в файл."""
+        if self.add_url(url):
+            self.save_data(filename)
+            return True
+        return False
+
+if __name__ == "__main__":
+    url_checker = URLChecker()
+    test_url = "http://example.com"
+    filename = "urls.json"
+    if url_checker.check_url(test_url, filename):
+        if url_checker.save_url(test_url, filename):
+            print("URL сохранён.")
+        else:
+            print("URL уже существует.")

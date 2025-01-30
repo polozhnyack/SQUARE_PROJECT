@@ -49,18 +49,24 @@ async def handle_user_link(message: types.Message, state: FSMContext):
 
         # Обрабатываем ссылки для сайта sslkn
         if "sslkn" in user_link:
-            if cheсker.check_and_save_url(user_link, filename="JSON/sslkn.json"):
-                await sosalkino(user_link, chat_id=message.chat.id)
-                processed_links += 1
+            if cheсker.check_url(user_link, filename="JSON/sslkn.json"):
+                succes = await sosalkino(user_link, chat_id=message.chat.id)
+                if succes == True:
+                    cheсker.save_data(user_link, filename="JSON/sslkn.json")
+                    processed_links += 1
+                else:
+                    logger.warning(f"Не удалось обработать ссылку: {user_link}")
+                    failed_links.append(succes)
             else:
                 await bot.send_message(text=f"Видео по ссылке {user_link} уже было опубликовано. Ссылка была пропущена.", chat_id=message.chat.id)
 
         # Обрабатываем ссылки для сайта porno365
         elif "porno365" in user_link:
-            if cheсker.check_and_save_url(user_link, filename="JSON/p365.json"):
+            if cheсker.check_url(user_link, filename="JSON/p365.json"):
                 result = await porno365_main(chat_id=message.chat.id, link=user_link)
 
                 if result is True:
+                    cheсker.save_url(user_link, filename="JSON/p365.json")
                     processed_links += 1
                 else:
                     logger.warning(f"Не удалось обработать ссылку: {user_link}")
