@@ -1,9 +1,12 @@
 import time
-import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 class SeleniumFetcher:
     def __init__(self, wait_time=3):
@@ -14,7 +17,7 @@ class SeleniumFetcher:
 
     def fetch_html(self, url):
         """Метод для получения HTML контента с указанного URL."""
-        logging.info(f"Fetching HTML content from URL: {url}")
+        logger.info(f"Fetching HTML content from URL: {url}")
         
         # Инициализация драйвера
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=self.chrome_options)
@@ -29,7 +32,7 @@ class SeleniumFetcher:
             # Получаем HTML
             html = driver.page_source
         except Exception as e:
-            logging.error(f"Error while fetching HTML content: {e}")
+            logger.error(f"Error while fetching HTML content: {e}")
             html = None
         finally:
             # Закрываем драйвер

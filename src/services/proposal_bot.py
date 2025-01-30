@@ -1,4 +1,3 @@
-import logging
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
@@ -6,15 +5,18 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
 
 from config.config import PROPOSAL_BOT_TOKEN, CHANNEL_ID, ADMIN as ADMIN_ID
+from config.settings import setup_logger
 from Buttons.inlinebtns import get_admin_buttons
 from templates.phrases import water_mark, start_proposal_text, watermark_proposal
 
 import sqlite3
 import re
 
+logger = setup_logger()
+
 # Инициализация бота
-logging.basicConfig(level=logging.INFO)
-logging.info("Initializing bot...")
+
+logger.info("Initializing bot...")
 
 proposal_bot = Bot(token=PROPOSAL_BOT_TOKEN)
 proposal_storage = MemoryStorage()
@@ -23,28 +25,28 @@ proposal_dp = Dispatcher(storage=proposal_storage)
 
 proposal_dp.include_router(proposal_router)
 
-logging.info("Bot initialized.")
+logger.info("Bot initialized.")
 
 FORBIDDEN_WORDS = ['Cp']
 
 # Проверка, забанен ли пользователь
 def is_user_banned(user_id):
-    logging.info(f"Checking if user {user_id} is banned.")
+    logger.info(f"Checking if user {user_id} is banned.")
     with sqlite3.connect('users.db') as conn:
         cursor = conn.cursor()
         cursor.execute('SELECT 1 FROM banned WHERE id = ?', (user_id,))
         is_banned = cursor.fetchone() is not None
-    logging.info(f"User {user_id} banned: {is_banned}")
+    logger.info(f"User {user_id} banned: {is_banned}")
     return is_banned
 
 # Обработчик команды /start
 @proposal_router.message(Command("start"))
 async def start_handler(message: Message):
-    logging.info(f"Handling /start command for user {message.from_user.id}.")
+    logger.info(f"Handling /start command for user {message.from_user.id}.")
     await message.answer(f"{start_proposal_text}", parse_mode="MarkdownV2")
 
     await proposal_bot.send_message(chat_id=ADMIN_ID,text=f"Пользователь: @{message.from_user.username} (ID: {message.from_user.id}) нажал /start" )
-    logging.info(f"Sent start message to user {message.from_user.id}.")
+    logger.info(f"Sent start message to user {message.from_user.id}.")
 
 
 # Словарь для хранения данных сообщений
@@ -55,7 +57,6 @@ def contains_forbidden_words(text: str) -> bool:
     return any(re.search(r'\b' + re.escape(word) + r'\b', text.lower()) for word in FORBIDDEN_WORDS)
 
 import sqlite3
-import logging
 import re
 
 FORBIDDEN_WORDS = ['Cp']  # Пример запрещенного слова
@@ -66,11 +67,11 @@ def contains_forbidden_words(text: str) -> bool:
 
 @proposal_router.message(lambda message: message.content_type in {"text", "photo", "video", "audio", "document", "voice"})
 async def forward_proposal_handler(message):
-    logging.info(f"Received message: {message.content_type} from {message.from_user.id}")
+    logger.info(f"Received message: {message.content_type} from {message.from_user.id}")
     
     try:
         if message.from_user.id == ADMIN_ID:
-            logging.info(f"Message from admin {message.from_user.id}, auto-forwarding to channel.")
+            logger.info(f"Message from admin {message.from_user.id}, auto-forwarding to channel.")
             
             watermark = watermark_proposal
             if message.text:
@@ -100,7 +101,7 @@ async def forward_proposal_handler(message):
 
         # Проверяем, есть ли в сообщении запрещенные слова
         if message.text and contains_forbidden_words(message.text):
-            logging.info(f"User {message.from_user.id} used forbidden words. Banning user.")
+            logger.info(f"User {message.from_user.id} used forbidden words. Banning user.")
             
             # Получаем имя пользователя или ставим 'Без имени', если оно отсутствует
             username = message.from_user.username if message.from_user.username else 'Без имени'
@@ -131,7 +132,7 @@ async def forward_proposal_handler(message):
 
         # Проверяем, заблокирован ли пользователь
         if is_user_banned(message.from_user.id):
-            logging.info(f"User {message.from_user.id} is banned. Sending notification.")
+            logger.info(f"User {message.from_user.id} is banned. Sending notification.")
             await proposal_bot.send_message(message.from_user.id, "You're banned from this bot!")
             return
 
@@ -168,7 +169,7 @@ async def forward_proposal_handler(message):
         await message.reply("Your proposal has been sent. Thank you! It will be reviewed by the admin.")
         
     except Exception as e:
-        logging.error(f"Error while processing the message from user {message.from_user.id}: {e}")
+        logger.error(f"Error while processing the message from user {message.from_user.id}: {e}")
         await message.reply("An error occurred while sending your suggestion. Please try again later.")
 
 
@@ -182,7 +183,7 @@ async def approve_post(call: CallbackQuery):
         # Получаем данные сообщения
         message_data = messages_data.get(admin_message_id)
         if not message_data:
-            logging.error(f"No data found for message ID {admin_message_id}")
+            logger.error(f"No data found for message ID {admin_message_id}")
             await call.answer("Original message data not found.")
             return
 
@@ -219,12 +220,12 @@ async def approve_post(call: CallbackQuery):
                 text="🎉 Your post has been approved and published in the channel! Thank you for your contribution."
             )
         except Exception as notify_error:
-            logging.error(f"Failed to notify user {user_id}: {notify_error}")
+            logger.error(f"Failed to notify user {user_id}: {notify_error}")
 
         await call.answer("Post approved and sent to the channel.")
-        logging.info(f"Message {admin_message_id} successfully forwarded to the channel with watermark.")
+        logger.info(f"Message {admin_message_id} successfully forwarded to the channel with watermark.")
     except Exception as e:
-        logging.error(f"Failed to process approval: {e}")
+        logger.error(f"Failed to process approval: {e}")
         await call.answer("An error occurred while approving the message.")
 
 
@@ -236,11 +237,11 @@ async def reject_post(call: CallbackQuery):
         original_message_id = int(call.data.split("_")[1])
         original_message_id2 = int(call.data.split("_")[2])
     except ValueError:
-        logging.error(f"Invalid message ID format in callback data: {call.data}")
+        logger.error(f"Invalid message ID format in callback data: {call.data}")
         await call.answer("Invalid message ID format.")
         return
 
-    logging.info(f"Rejecting message with ID {original_message_id}.")
+    logger.info(f"Rejecting message with ID {original_message_id}.")
 
     try:
         # Отправляем пользователю уведомление об отклонении
@@ -256,9 +257,9 @@ async def reject_post(call: CallbackQuery):
 
         # Подтверждаем отклонение
         await call.answer("Post rejected.")
-        logging.info(f"Message {original_message_id} rejected.")
+        logger.info(f"Message {original_message_id} rejected.")
     except Exception as e:
-        logging.error(f"Failed to reject message: {e}")
+        logger.error(f"Failed to reject message: {e}")
         await call.answer("An error occurred while rejecting the message.")
 
 
@@ -278,7 +279,7 @@ async def ban_user(call: CallbackQuery):
         
         await proposal_bot.send_message(user_id, 'You have been banned from this bot for violating the terms of use. Good luck!')
     except Exception as e:
-        logging.error(f"Failed to fetch username for user {user_id}: {e}")
+        logger.error(f"Failed to fetch username for user {user_id}: {e}")
         username = "Unknown"
     finally:
         # Добавляем пользователя в таблицу banned
@@ -301,7 +302,7 @@ async def unban_user(call: CallbackQuery):
         chat: Chat = await proposal_bot.get_chat(user_id)
         username = chat.username or "Unknown"
     except Exception as e:
-        logging.error(f"Failed to fetch username for user {user_id}: {e}")
+        logger.error(f"Failed to fetch username for user {user_id}: {e}")
         username = "Unknown"
 
     # Убираем пользователя из таблицы banned
@@ -317,5 +318,5 @@ async def unban_user(call: CallbackQuery):
 
 # Возврат бота и диспетчера
 def get_proposal_bot():
-    logging.info("Returning dispatcher and bot instance.")
+    logger.info("Returning dispatcher and bot instance.")
     return proposal_dp, proposal_bot

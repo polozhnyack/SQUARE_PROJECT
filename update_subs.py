@@ -1,8 +1,5 @@
 from telethon import TelegramClient
-
-from telethon.tl.types import ChannelParticipantsSearch
 import sqlite3
-import logging
 from aiogram import Bot
 import asyncio
 
@@ -12,8 +9,9 @@ from config.config import API_ID, API_HASH, PHONE, CHANNEL_ID, TOKEN, ADMIN
 api_id = API_ID
 api_hash = API_HASH
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 
 # Инициализация клиента

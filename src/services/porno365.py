@@ -1,26 +1,18 @@
-import requests
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 import random
-from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji, PHONE, TOKEN
+from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji, PHONE
 from db.db import Database
 
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
 
-
-from aiogram.types import Message
 from googletrans import Translator as GoogleTrans
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from deep_translator import GoogleTranslator
 from telethon import TelegramClient
 from telethon.types import DocumentAttributeVideo
-from aiogram import Bot
 
 from config.config import bot, DELAY_EDIT_MESSAGE
 
@@ -33,17 +25,15 @@ from tqdm import tqdm
 import sys
 from datetime import datetime
 
-from PIL import Image
-from io import BytesIO
 import ffmpeg
 
-import logging
-logging.basicConfig(level=logging.INFO)
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 ua = UserAgent()
 db = Database()
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 headers = {'User-Agent': ua.chrome}
 
@@ -95,10 +85,10 @@ async def clear_directory(directory):
             file_path = os.path.join(directory, filename)
             if os.path.isfile(file_path):
                 os.remove(file_path)
-                logging.info(f"Deleted file: {file_path}")
-        logging.info(f"Successfully cleared directory: {directory}")
+                logger.info(f"Deleted file: {file_path}")
+        logger.info(f"Successfully cleared directory: {directory}")
     except Exception as e:
-        logging.error(f"Failed to clear directory {directory}: {e}")
+        logger.error(f"Failed to clear directory {directory}: {e}")
 
 async def scale_image_to_video_resolution(image_path, output_image_path):
     """Масштабирует изображение до разрешения 360p (640x360) с использованием OpenCV."""
@@ -116,10 +106,10 @@ async def scale_image_to_video_resolution(image_path, output_image_path):
         # Сохранение изображения
         cv2.imwrite(output_image_path, resized_img)
 
-        logging.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
+        logger.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
         return True
     except Exception as e:
-        logging.error(f"An error occurred while scaling the image: {str(e)}")
+        logger.error(f"An error occurred while scaling the image: {str(e)}")
         return False
     
 from urllib.parse import urlparse
@@ -144,7 +134,7 @@ def extract_movie_id(url: str, domain_keyword: str = "porno365") -> str:
         return ""  # Возвращаем пустую строку, если ключевое слово не найдено или структура пути неверна
     except Exception as e:
         # Логируем ошибку, если произошла проблема
-        logging.error(f"Ошибка при извлечении идентификатора из URL: {e}")
+        logger.error(f"Ошибка при извлечении идентификатора из URL: {e}")
         return ""
 
 async def porno365_main(chat_id, link=None):
@@ -180,9 +170,9 @@ async def porno365_main(chat_id, link=None):
         video_file_path, img_file_path = await downloader.download_media(video_url, img_url, video_filename=video_id, img_filename=video_id)
 
         if video_file_path and img_file_path:
-            logging.info(f"Файлы успешно загружены: видео - {video_file_path}, изображение - {img_file_path}")
+            logger.info(f"Файлы успешно загружены: видео - {video_file_path}, изображение - {img_file_path}")
         else:
-            logging.warning(f"Не удалось загрузить файлы для ссылки: {video_url}")
+            logger.warning(f"Не удалось загрузить файлы для ссылки: {video_url}")
             return link
 
         await downloader.cleanup()
@@ -220,20 +210,20 @@ async def porno365_main(chat_id, link=None):
         try:
             title_en = GoogleTranslator(source='auto', target='en').translate(title)
             description_en = GoogleTranslator(source='auto', target='en').translate(description)
-            logging.info("Translation using deep_translator was successful.")
+            logger.info("Translation using deep_translator was successful.")
 
         except Exception as e:
-            logging.error(f"Error with deep_translator: {e}")
-            logging.info("Switching to googletrans...")
+            logger.error(f"Error with deep_translator: {e}")
+            logger.info("Switching to googletrans...")
 
             # Перевод через googletrans в случае ошибки
             try:
                 google_translator = GoogleTrans()
                 title_en = await google_translator.translate(title, src='auto', dest='en').text
                 description_en = await google_translator.translate(description, src='auto', dest='en').text
-                logging.info("Translation using googletrans was successful.")
+                logger.info("Translation using googletrans was successful.")
             except Exception as e:
-                logging.error(f"Error with googletrans: {e}")
+                logger.error(f"Error with googletrans: {e}")
                 title_en = description_en = "Why make it up, you have to fuck it?"
 
         num_emodji_start = random.randint(0, 3)
@@ -298,7 +288,7 @@ async def porno365_main(chat_id, link=None):
                 progress_callback=lambda current, total: progress_callback(current, total, chat_id)
             )
         except Exception as e:
-            logging.error(f"Ошибка при выгрузке: {e}")
+            logger.error(f"Ошибка при выгрузке: {e}")
             await bot.send_message(chat_id=chat, 
                                    text=f"*❌ ОШИБКА ПРИ ВЫГРУЗКЕ ❌*\nВидео: {link} небыло выгружено.\n Ошибка: {e}",
                                    parse_mode='Markdown'
@@ -316,7 +306,7 @@ async def porno365_main(chat_id, link=None):
 
         await clear_directory('media/video')
     else:
-        logging.warning("No information found in the parsed content.")
+        logger.warning("No information found in the parsed content.")
         return link
 
     return True

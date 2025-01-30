@@ -1,20 +1,11 @@
-import requests
 import time
 import os
-import logging
-import asyncio
+
 from datetime import datetime
 
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 
 import random
-import re
-
-from tqdm import tqdm
 
 from src.utils.find_tags import fetch_tags
 from src.modules.mediadownloader import MediaDownloader
@@ -23,14 +14,15 @@ from src.utils.MetadataSaver import MetadataSaver
 
 
 from config.config import bot, DELAY_EDIT_MESSAGE
+from config.settings import setup_logger
 
 from deep_translator import GoogleTranslator
-from googletrans import Translator as GoogleTrans
 
-logging.basicConfig(level=logging.INFO)
+
+logger = setup_logger()
 
 async def extract_video_src(html):
-    logging.info("Extracting video source from HTML content")
+    logger.info("Extracting video source from HTML content")
 
     soup = BeautifulSoup(html, 'html.parser')
     
@@ -57,13 +49,13 @@ async def extract_video_src(html):
         title = title = soup.find('div', class_='title-video').get_text().strip()
 
         if video_src and img_src:
-            logging.info(f"Video URL found: {video_src}")
-            logging.info(f"Image URL found: {img_src}")
+            logger.info(f"Video URL found: {video_src}")
+            logger.info(f"Image URL found: {img_src}")
             return video_src, img_src, description, title, tags
         else:
-            logging.warning("No video tag or image tag found in the video block.")
+            logger.warning("No video tag or image tag found in the video block.")
     else:
-        logging.warning("No video block found in the HTML content.")
+        logger.warning("No video block found in the HTML content.")
 
     return None, None
 
@@ -80,18 +72,18 @@ def extract_slug(url: str) -> str:
         return path.strip("/").split("/")[-1]
     except Exception as e:
         # Логируем ошибку, если произошла проблема
-        logging.error(f"Ошибка при извлечении сегмента из URL: {e}")
+        logger.error(f"Ошибка при извлечении сегмента из URL: {e}")
         return ""
 
 async def parse(url, chat_id):
-    logging.info("Starting parse function")
+    logger.info("Starting parse function")
 
     try:
         # Используем переданный URL напрямую
         content_url = url
 
         if content_url:
-            logging.info(f"Video URL: {content_url}")
+            logger.info(f"Video URL: {content_url}")
 
             try:
                 # Получаем HTML-контент страницы видео
@@ -101,7 +93,7 @@ async def parse(url, chat_id):
                 
                 
                 if html_content:
-                    logging.info("HTML content fetched successfully")
+                    logger.info("HTML content fetched successfully")
 
                     try:
                         # Извлекаем ссылки на видео, изображение и описание из HTML-контента
@@ -111,14 +103,14 @@ async def parse(url, chat_id):
 
                             filename = extract_slug(url)
 
-                            logging.info(f"Video link extracted: {video_link}")
-                            logging.info(f"Image link extracted: {img_link}")
+                            logger.info(f"Video link extracted: {video_link}")
+                            logger.info(f"Image link extracted: {img_link}")
 
                             save_directory = 'media/video'
                             video_filename = f'{filename}'
                             img_filename = f'{filename}'
 
-                            logging.info(f"Starting download: {video_filename}")
+                            logger.info(f"Starting download: {video_filename}")
 
                             downloader = MediaDownloader(save_directory="media/video", chat_id=chat_id)
 
@@ -127,23 +119,23 @@ async def parse(url, chat_id):
                             # video_file_path, img_file_path = 1
 
                             if video_file_path:
-                                logging.info(f"Video downloaded successfully: {video_file_path}")
+                                logger.info(f"Video downloaded successfully: {video_file_path}")
                                 await downloader.cleanup()
                                 return video_file_path, img_file_path, description, title, tags
                             else:
-                                logging.error("Video download failed.")
+                                logger.error("Video download failed.")
                         else:
-                            logging.warning("No video or image link found in HTML content. Skipping download.")
+                            logger.warning("No video or image link found in HTML content. Skipping download.")
                     except Exception as e:
-                        logging.error(f"Error extracting video link: {e}")
+                        logger.error(f"Error extracting video link: {e}")
                 else:
-                    logging.error("Failed to fetch HTML content. Skipping extraction and download.")
+                    logger.error("Failed to fetch HTML content. Skipping extraction and download.")
             except Exception as e:
-                logging.error(f"Error fetching HTML content with Selenium: {e}")
+                logger.error(f"Error fetching HTML content with Selenium: {e}")
         else:
-            logging.warning("No video URL provided.")
+            logger.warning("No video URL provided.")
     except Exception as e:
-        logging.error(f"Unexpected error occurred: {e}")
+        logger.error(f"Unexpected error occurred: {e}")
 
     # Возвращаем None, если произошла ошибка или нет данных
     return None, None, None, None, None
@@ -152,10 +144,8 @@ import cv2
 
 from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji
 
-logging.basicConfig(level=logging.INFO)
 
 import os
-import logging
 import ffmpeg
 from telethon import TelegramClient
 from telethon.tl.types import DocumentAttributeVideo
@@ -177,10 +167,10 @@ async def scale_image_to_video_resolution(image_path, output_image_path):
         # Сохранение изображения
         cv2.imwrite(output_image_path, resized_img)
 
-        logging.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
+        logger.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
         return True
     except Exception as e:
-        logging.error(f"An error occurred while scaling the image: {str(e)}")
+        logger.error(f"An error occurred while scaling the image: {str(e)}")
         return False
 
 def clear_directory(directory):
@@ -190,14 +180,13 @@ def clear_directory(directory):
             file_path = os.path.join(directory, filename)
             if os.path.isfile(file_path):
                 os.remove(file_path)
-                logging.info(f"Deleted file: {file_path}")
-        logging.info(f"Successfully cleared directory: {directory}")
+                logger.info(f"Deleted file: {file_path}")
+        logger.info(f"Successfully cleared directory: {directory}")
     except Exception as e:
-        logging.error(f"Failed to clear directory {directory}: {e}")
+        logger.error(f"Failed to clear directory {directory}: {e}")
 
 import os
 import re
-import logging
 from urllib.parse import urlparse
 
 async def sosalkino(url, chat_id):
@@ -220,7 +209,7 @@ async def sosalkino(url, chat_id):
         title_en = GoogleTranslator(source='auto', target='en').translate(title)
         description_en = GoogleTranslator(source='auto', target='en').translate(description)
     except Exception as e:
-        logging.error(f"Translation error: {e}")
+        logger.error(f"Translation error: {e}")
         title_en = description_en = "Translation failed."
 
     title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n{tags}"
@@ -231,7 +220,7 @@ async def sosalkino(url, chat_id):
     resized_img_path = f'media/video/{img_id}_resized_img.jpg'
     success = await scale_image_to_video_resolution(img_path, resized_img_path)
     if not success:
-        logging.error("Failed to scale image to video resolution.")
+        logger.error("Failed to scale image to video resolution.")
         return
 
     processed_video_path = video_path
@@ -282,7 +271,7 @@ async def sosalkino(url, chat_id):
             progress_callback=lambda current, total: progress_callback(current, total, chat_id)
         )
     except Exception as e:
-        logging.error(f"Ошибка при выгрузке: {e}")
+        logger.error(f"Ошибка при выгрузке: {e}")
 
         await bot.send_message(chat_id=chat, 
                         text=f"*❌ ОШИБКА ПРИ ВЫГРУЗКЕ ❌*\nВидео: {url} небыло выгружено.\n Ошибка: {e}",

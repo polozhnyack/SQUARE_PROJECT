@@ -1,7 +1,10 @@
 import os
 import re
 import json
-import logging
+
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 
 class MetadataSaver:
@@ -45,6 +48,6 @@ class MetadataSaver:
         try:
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 json.dump(metadata, f, ensure_ascii=False, indent=4)
-            logging.info(f"Metadata saved to {json_file_path}")
+            logger.info(f"Metadata saved to {json_file_path}")
         except Exception as e:
-            logging.error(f"Error saving metadata to JSON: {e}")
+            logger.error(f"Error saving metadata to JSON: {e}")

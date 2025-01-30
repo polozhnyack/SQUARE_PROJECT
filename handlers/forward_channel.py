@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 import asyncio
 from aiogram import exceptions 
 from templates.phrases import water_mark
-import logging
+
 
 from db.db import Database
 from config.config import bot, CHANNEL_ID
@@ -16,8 +16,9 @@ media_groups_cache = {}
 media_group_text_cache = {}
 processing_groups = set()
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 
 async def forward_to_channel(message: types.Message, state: FSMContext):
@@ -106,7 +107,7 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
             
             # caption = GoogleTranslator(source='auto', target='en').translate(message.md_text)
             caption = f"{message.md_text}\n\n{water_mark}"
-            logging.info(f"Title Aiogram: {message.caption}")
+            logger.info(f"Title Aiogram: {message.caption}")
             try:
                 logger.info(f'Текст: {caption}')
                 await bot.send_video(

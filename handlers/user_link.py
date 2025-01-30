@@ -9,8 +9,9 @@ from src.modules.media_selector import selector
 from templates.phrases import RECOMEND_MSG
 from config.config import bot
 
-import logging
+from config.settings import setup_logger
 
+logger = setup_logger()
 cheсker = URLChecker() 
 
 async def handle_user_link(message: types.Message, state: FSMContext):
@@ -62,7 +63,7 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                 if result is True:
                     processed_links += 1
                 else:
-                    logging.warning(f"Не удалось обработать ссылку: {user_link}")
+                    logger.warning(f"Не удалось обработать ссылку: {user_link}")
                     failed_links.append(result) 
             else: 
                 await bot.send_message(text=f"Видео по ссылке {user_link} уже было опубликовано. Ссылка была пропущена.", chat_id=message.chat.id)

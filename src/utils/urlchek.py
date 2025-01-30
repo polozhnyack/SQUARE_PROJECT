@@ -1,6 +1,5 @@
 import os
 import json
-import time
 
 class URLChecker:
     def __init__(self, max_links: int = 1000):

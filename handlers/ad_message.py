@@ -8,12 +8,14 @@ import html
 from aiogram import Bot
 from aiogram.types import FSInputFile
 
-import logging
+
 from Buttons.inlinebtns import ad_buttons, rec_button, create_url_button, lust_chat
 from db.db import Database
-from text.phrases import AD_MESSAGE, RECOMEND_MSG, LUSTCHAT, good_morning_phrases, good_night_phrases
+from templates.phrases import AD_MESSAGE, RECOMEND_MSG, LUSTCHAT, good_morning_phrases, good_night_phrases
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 # Директория с изображениями
 ONEWIN_DIRECTORY = 'media/image/1win'  # замените на путь к вашей директории с изображениями
@@ -37,9 +39,9 @@ async def send_advertisement(TEXT, DIRECTORY_IMG):
             await bot.send_photo(chat_id=group_id, photo=photo, caption=TEXT, parse_mode="Markdown")
         else:
             await bot.send_message(chat_id=group_id, text=AD_MESSAGE, parse_mode="Markdown")
-        logging.info(f"Message sent to group/channel ID: {TEXT} with image: {image_path}")
+        logger.info(f"Message sent to group/channel ID: {TEXT} with image: {image_path}")
     except Exception as e:
-        logging.error(f"Failed to send message to group/channel ID: {group_id}. Error: {e}")
+        logger.error(f"Failed to send message to group/channel ID: {group_id}. Error: {e}")
 
 class CronTasks:
     def __init__(self):
@@ -72,12 +74,12 @@ class CronTasks:
             # Отправляем сообщение администратору. Замена bot.send_message() на вашу функцию отправки сообщений
             try:
                 await bot.send_message(admin_id, text)
-                logging.info(f"Message sent to admin {admin_id}: {text}")
+                logger.info(f"Message sent to admin {admin_id}: {text}")
             except Exception as e:
-                logging.error(f"Failed to send message to admin {admin_id}: {e}")
+                logger.error(f"Failed to send message to admin {admin_id}: {e}")
 
     async def _scheduled_task(self):
-        logging.info("Scheduled task (20:00) triggered.")
+        logger.info("Scheduled task (20:00) triggered.")
         await send_advertisement(TEXT=AD_MESSAGE, DIRECTORY_IMG=ONEWIN_DIRECTORY, BUTTON=ad_buttons())
         await self.notify_admins("Отправлен рекламный пост (20:00)")
 
@@ -86,19 +88,19 @@ class CronTasks:
         await self.notify_admins("Отправлена реклама чата.")
 
     async def _recomend_task(self):
-        logging.info("Recomend task (16:00) triggered.")
+        logger.info("Recomend task (16:00) triggered.")
         await send_advertisement(TEXT=RECOMEND_MSG, DIRECTORY_IMG=GIRLS_DIRECTORY)
         await self.notify_admins("Отправлены рекомендации (16:00)")
 
     async def _goodmorning_task(self):
         random_phrase = random.choice(good_morning_phrases)
-        logging.info("Good morning task (08:00) triggered.")
+        logger.info("Good morning task (08:00) triggered.")
         await send_advertisement(TEXT=random_phrase, DIRECTORY_IMG=GIRLS_DIRECTORY, BUTTON=create_url_button())
         await self.notify_admins("Отправлено: Доброе утро.  (8:00)")
 
     async def _goodnight_task(self):
         random_phrase = random.choice(good_night_phrases)
-        logging.info("Good night task (22:00) triggered.")
+        logger.info("Good night task (22:00) triggered.")
         await send_advertisement(TEXT=random_phrase, DIRECTORY_IMG=GIRLS_DIRECTORY, BUTTON=create_url_button())
         await self.notify_admins("Отправлено: Спокойной ночи.  (22:00)")
 

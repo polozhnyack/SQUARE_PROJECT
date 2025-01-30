@@ -8,16 +8,15 @@ from src.utils.urlchek import URLChecker
 from src.modules.media_selector import selector
 from templates.phrases import RECOMEND_MSG
 
-import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 
 from Buttons.inlinebtns import create_users_keyboard, status_edit, spam_mode
 from db.db import Database
 from bot import bot
 from config.config import ADMIN  # Импортируем CHANEL_ID и CHANNEL_ID из bot.py
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 db = Database()
 mc = ModuleControl()
@@ -98,7 +97,7 @@ async def edit_status_spam(query: CallbackQuery):
 
     turn = mc.get_module_status('SpamAnonChat')
     if turn == True:
-        await run_spam(turn)
+        pass
     else: 
         pass
 

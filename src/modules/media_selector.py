@@ -2,12 +2,12 @@ from telethon import TelegramClient
 from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 import random
 import asyncio
-import logging
 
 from config.config import API_HASH, API_ID
 
-logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 # Конфигурация клиента
 # CHANNEL_ID = 2111900281  # Используйте ID канала вместо имени (начинается с -100)
@@ -42,9 +42,9 @@ async def selector(TEXT):
 
         # Отправка выбранного медиа файла
         await client.send_file(TARGET_BOT_USERNAME, chosen_message.media, caption=TEXT, parse_mode='Md')
-        logging.info(f"Пост с {media_type.upper()} отправлен. Текст: {TEXT}")
+        logger.info(f"Пост с {media_type.upper()} отправлен. Текст: {TEXT}")
     else:
-        logging.info('Не удалось найти сообщения с заданным текстом и медиа.')
+        logger.info('Не удалось найти сообщения с заданным текстом и медиа.')
 
     await client.disconnect()
 

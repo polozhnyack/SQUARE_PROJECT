@@ -1,20 +1,15 @@
 import os
-import logging
-import aiohttp
 import asyncio
 from tqdm.asyncio import tqdm
-
-import os
-import logging
 import aiohttp
-import asyncio
 import time
 from tqdm import tqdm
 from datetime import datetime
 
-from aiogram.types import Message
-
 from config.config import bot, DELAY_EDIT_MESSAGE
+from config.settings import setup_logger
+
+logger = setup_logger()
 
 class MediaDownloader:
     def __init__(self, save_directory, chat_id):
@@ -24,7 +19,7 @@ class MediaDownloader:
 
         if not os.path.exists(self.save_directory):
             os.makedirs(self.save_directory)
-            logging.info(f"Directory created: {self.save_directory}")
+            logger.info(f"Directory created: {self.save_directory}")
         
         # Инициализация переменных для отслеживания прогресса
         self.last_update_time = 0
@@ -72,11 +67,11 @@ class MediaDownloader:
                                 pass
                             else:
                                 await self.progress_callback(progress_bar.n, total_size, description)
-                    logging.info(f"{description} downloaded successfully and saved to {file_path}")
+                    logger.info(f"{description} downloaded successfully and saved to {file_path}")
                 else:
-                    logging.error(f"Failed to download {description}. Status code: {response.status} for URL {url}")
+                    logger.error(f"Failed to download {description}. Status code: {response.status} for URL {url}")
         except Exception as e:
-            logging.error(f"An error occurred while downloading {description}: {e}")
+            logger.error(f"An error occurred while downloading {description}: {e}")
             self.bot.send_message(chat_id=self.chat_id, 
                                    text=f"*❌ ОШИБКА ПРИ ЗАГРУЗКЕ ❌*\nВидео: {url} небыло выгружено.\n Ошибка: {e}",
                                    parse_mode='Markdown'
@@ -101,7 +96,7 @@ class MediaDownloader:
 
     async def download_media(self, video_url, img_url, video_filename, img_filename):
         """Download both video and image asynchronously."""
-        logging.info(f"Starting media download: video={video_url}, image={img_url}")
+        logger.info(f"Starting media download: video={video_url}, image={img_url}")
         async with aiohttp.ClientSession() as session:
             # Параллельно загружаем видео и изображение
             video_file_path, img_file_path = await asyncio.gather(
@@ -116,6 +111,4 @@ class MediaDownloader:
             await self.bot.delete_message(self.chat_id, message_id=self.progress_message.message_id)
 
 
-# Установка логирования
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
