@@ -16,7 +16,7 @@ from deep_translator import GoogleTranslator
 from telethon import TelegramClient
 from telethon.types import DocumentAttributeVideo
 
-from config.config import bot, DELAY_EDIT_MESSAGE
+from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE
 from config.settings import setup_logger
 
 import time
@@ -198,7 +198,7 @@ async def porno365_main(chat_id, link=None):
 
         text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n{formatted_tags}"
 
-        client = TelegramClient('session_name', API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
+        client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
         await client.start(phone=PHONE)
 
         probe = ffmpeg.probe(video_file_path)

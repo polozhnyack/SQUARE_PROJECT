@@ -6,7 +6,7 @@ import random
 from datetime import datetime, timedelta
 from db.ModuleControl import ModuleControl
 
-from config.config import API_HASH, API_ID, PHONE, TOKEN, ADMIN
+from config.config import API_HASH, API_ID, PHONE, TOKEN, ADMIN, ADMIN_SESSION_FILE
 from templates.phrases import SPAM_MESSAGE
 
 from aiogram import Bot
@@ -34,7 +34,7 @@ text_message = random.choice(SPAM_MESSAGE)
 trigger_message = 'If you wish, leave your feedback about your partner. It will help us find better partners for you in the future' 
 ru_trigger_message = 'Если хотите, оставьте мнение о вашем собеседнике. Это поможет находить вам подходящих собеседников'
 
-# client = TelegramClient('session_name', api_id, api_hash, system_version="4.16.30-vxCUSTOM")
+# client = TelegramClient(ADMIN_SESSION_FILE, api_id, api_hash, system_version="4.16.30-vxCUSTOM")
 mc = ModuleControl()
 bot = Bot(TOKEN)
 

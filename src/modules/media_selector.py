@@ -3,7 +3,7 @@ from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 import random
 import asyncio
 
-from config.config import API_HASH, API_ID
+from config.config import API_HASH, API_ID, ADMIN_SESSION_FILE
 
 from config.settings import setup_logger
 
@@ -16,7 +16,7 @@ TARGET_PHRASE = 'Girls❤️✨'  # Текст для поиска
 CHANNEL_ID = 2314838211
 
 # Создаем Telethon-клиента
-client = TelegramClient('session_name', API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
+client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
 
 async def selector(TEXT):
     await client.start()

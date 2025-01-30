@@ -20,7 +20,7 @@ from src.utils.cleaner import clear_directory
 from src.utils.resizer_img import scale_img
 
 from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji
-from config.config import bot, DELAY_EDIT_MESSAGE
+from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE
 from config.settings import setup_logger
 
 logger = setup_logger()
@@ -183,7 +183,7 @@ async def sosalkino(url, chat_id):
     metadata = MetadataSaver()
     metadata.save_metadata(filename=img_id, url=url, video_path=processed_video_path, img_path=resized_img_path, title=title)
 
-    client = TelegramClient('session_name', API_ID, API_HASH)
+    client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
     await client.start(phone=PHONE)
 
     probe = ffmpeg.probe(processed_video_path)
