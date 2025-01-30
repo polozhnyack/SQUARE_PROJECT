@@ -5,6 +5,8 @@ from aiogram import Bot
 
 load_dotenv()
 
+BASE_URL_SSLKN = 'https://wv.sslkn.porn'
+
 TOKEN = os.getenv('TOKEN')
 PROPOSAL_BOT_TOKEN = os.getenv('PROPOSAL_BOT_TOKEN')
 ADMIN = int(os.getenv('ADMIN'))

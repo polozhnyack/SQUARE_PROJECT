@@ -7,7 +7,7 @@ import os
 
 from handlers.register import register_handlers
 from db.db import Database
-from config.config import TOKEN, ADMIN, API_HASH, API_ID, ADMIN_SESSION_FILE
+from config.config import TOKEN, ADMIN, API_HASH, API_ID, ADMIN_SESSION_FILE, PHONE
 from db.ModuleControl import ModuleControl
 from src.services.proposal_bot import get_proposal_bot
 from config.settings import setup_logger
@@ -24,7 +24,7 @@ proposal_dp, proposal_bot = get_proposal_bot()
 
 if not os.path.exists(ADMIN_SESSION_FILE):
     logger.info("Файл сессии отсутствует, создаем новую сессию...")
-    client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
+    client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, PHONE, system_version="4.16.30-vxCUSTOM")
     async def create_session():
         await client.start()
         await client.disconnect()
