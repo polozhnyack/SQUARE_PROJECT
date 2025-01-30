@@ -10,5 +10,10 @@ users.db
 
 .DS_Store
 
+update_subs.py
+
 /JSON/*
 !/JSON/
+
+/logs/*
+!/logs/

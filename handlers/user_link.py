@@ -52,7 +52,7 @@ async def handle_user_link(message: types.Message, state: FSMContext):
             if cheсker.check_url(user_link, filename="JSON/sslkn.json"):
                 succes = await sosalkino(user_link, chat_id=message.chat.id)
                 if succes == True:
-                    cheсker.save_data(user_link, filename="JSON/sslkn.json")
+                    cheсker.save_url(user_link, filename="JSON/sslkn.json")
                     processed_links += 1
                 else:
                     logger.warning(f"Не удалось обработать ссылку: {user_link}")
