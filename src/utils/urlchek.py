@@ -42,13 +42,3 @@ class URLChecker:
             self.save_data(filename)
             return True
         return False
-
-if __name__ == "__main__":
-    url_checker = URLChecker()
-    test_url = "http://example.com"
-    filename = "urls.json"
-    if url_checker.check_url(test_url, filename):
-        if url_checker.save_url(test_url, filename):
-            print("URL сохранён.")
-        else:
-            print("URL уже существует.")
