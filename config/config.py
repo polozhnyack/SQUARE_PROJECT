@@ -18,9 +18,10 @@ PHONE = os.getenv('PHONE')
 LUSTBOT_LINK = os.getenv('LUSTBOT_LINK')
 
 ADMIN_SESSION_FILE = "userbot.session"
+PARSE_MODE = "MarkdownV2"
 
 emodji =  ['❤️', '✨','🌟','⭐','🔥','⚡','🌙','☀️','💥','💣','😈', '😘','🥰','😏','😍','🤤','💫','🍒','🖤','🥵','😋','😀','😃','❤️', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟','🤭','😄', '🌚','👌','👍', '🤩', '🍆', '💦', '🍑', '👀', '🍓', '💋', '🔞','💯', '❌','⭕️','💢']
 
-DELAY_EDIT_MESSAGE = 60 
+DELAY_EDIT_MESSAGE = 30 
 
 bot = Bot(token=TOKEN)

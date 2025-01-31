@@ -8,7 +8,7 @@ from templates.phrases import water_mark
 
 
 from db.db import Database
-from config.config import bot, CHANNEL_ID
+from config.config import bot, CHANNEL_ID, PARSE_MODE
 
 db = Database()
 
@@ -78,7 +78,7 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
         processing_groups.remove(media_group_id)
         
         return
-
+    
     else:
         # translated = GoogleTranslator(source='auto', target='en').translate(message.md_text)
         if message.content_type == 'text':
@@ -94,12 +94,11 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
             caption = f"{message.md_text}\n\n{water_mark}"
 
             # button = create_url_button() if message.from_user.id != 5527908685 else None
-
             await bot.send_photo(
                 CHANNEL_ID,
                 message.photo[-1].file_id,
                 caption=caption,
-                parse_mode='Markdown',
+                parse_mode=PARSE_MODE,
                 # reply_markup=button
             )
 
@@ -114,7 +113,7 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
                     CHANNEL_ID,
                     message.video.file_id,
                     caption=caption,
-                    parse_mode=ParseMode.MARKDOWN_V2,  
+                    parse_mode=PARSE_MODE,  
                     # reply_markup=create_url_button()
                 )
             except exceptions.TelegramAPIError as e:

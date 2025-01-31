@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
 
-from config.config import PROPOSAL_BOT_TOKEN, CHANNEL_ID, ADMIN as ADMIN_ID
+from config.config import PROPOSAL_BOT_TOKEN, CHANNEL_ID, PARSE_MODE, ADMIN as ADMIN_ID
 from config.settings import setup_logger
 from Buttons.inlinebtns import get_admin_buttons
 from templates.phrases import water_mark, start_proposal_text, watermark_proposal
@@ -43,7 +43,7 @@ def is_user_banned(user_id):
 @proposal_router.message(Command("start"))
 async def start_handler(message: Message):
     logger.info(f"Handling /start command for user {message.from_user.id}.")
-    await message.answer(f"{start_proposal_text}", parse_mode="MarkdownV2")
+    await message.answer(f"{start_proposal_text}", parse_mode=PARSE_MODE)
 
     await proposal_bot.send_message(chat_id=ADMIN_ID,text=f"Пользователь: @{message.from_user.username} (ID: {message.from_user.id}) нажал /start" )
     logger.info(f"Sent start message to user {message.from_user.id}.")
@@ -160,10 +160,11 @@ async def forward_proposal_handler(message):
         await proposal_bot.send_message(
             chat_id=ADMIN_ID,
             text=f"New suggestion from @{message.from_user.username or 'Без имени'} (ID: {message.from_user.id})",
+            parse_mode=PARSE_MODE,
             reply_markup=get_admin_buttons(
                 user_id=message.from_user.id,
                 username=message.from_user.username,
-                message=admin_message.message_id
+                message=admin_message.message_id,
             )
         )
         await message.reply("Your proposal has been sent. Thank you! It will be reviewed by the admin.")
@@ -192,7 +193,7 @@ async def approve_post(call: CallbackQuery):
         if message_data["type"] == "text":
             await proposal_bot.send_message(
                 chat_id=CHANNEL_ID,
-                parse_mode="MarkdownV2",
+                parse_mode=PARSE_MODE,
                 protect_content=True,
                 text=f"{message_data['content']}{watermark}"
             )
@@ -201,7 +202,7 @@ async def approve_post(call: CallbackQuery):
                 chat_id=CHANNEL_ID,
                 photo=message_data["file_id"],
                 protect_content=True,
-                parse_mode="MarkdownV2",
+                parse_mode=PARSE_MODE,
                 caption=f"{message_data['caption']}{watermark}" if message_data.get("caption") else watermark
             )
         elif message_data["type"] == "video":
@@ -209,7 +210,7 @@ async def approve_post(call: CallbackQuery):
                 chat_id=CHANNEL_ID,
                 video=message_data["file_id"],
                 protect_content=True,
-                parse_mode="MarkdownV2",
+                parse_mode=PARSE_MODE,
                 caption=f"{message_data['caption']}{watermark}" if message_data.get("caption") else watermark
             )
         # Добавьте обработку для других типов сообщений аналогично...

@@ -20,7 +20,7 @@ from src.utils.cleaner import clear_directory
 from src.utils.resizer_img import scale_img
 
 from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji
-from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE
+from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE, PARSE_MODE
 from config.settings import setup_logger
 
 logger = setup_logger()
@@ -221,7 +221,7 @@ async def sosalkino(url, chat_id):
             processed_video_path,
             attributes=(DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True),),
             thumb=resized_img_path,
-            parse_mode="markdown",
+            parse_mode=PARSE_MODE,
             caption=title,
             progress_callback=lambda current, total: progress_callback(current, total, chat_id)
         )

@@ -1,7 +1,7 @@
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 import random
-from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji, PHONE
+from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji, PHONE, PARSE_MODE
 from db.db import Database
 
 from src.modules.mediadownloader import MediaDownloader
@@ -241,7 +241,7 @@ async def porno365_main(chat_id, link=None):
                 video_file_path,
                 attributes=(DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True),),
                 thumb=resized_img_path,
-                parse_mode="markdown",
+                parse_mode=PARSE_MODE,
                 caption=text_post,
                 progress_callback=lambda current, total: progress_callback(current, total, chat_id)
             )

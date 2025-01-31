@@ -2,8 +2,9 @@ from telethon import TelegramClient
 from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 import random
 import asyncio
+import re
 
-from config.config import API_HASH, API_ID, ADMIN_SESSION_FILE
+from config.config import API_HASH, API_ID, ADMIN_SESSION_FILE, PARSE_MODE
 
 from config.settings import setup_logger
 
@@ -41,7 +42,7 @@ async def selector(TEXT):
             media_type = 'video' if isinstance(chosen_message.media, MessageMediaDocument) else 'photo'
 
         # Отправка выбранного медиа файла
-        await client.send_file(TARGET_BOT_USERNAME, chosen_message.media, caption=TEXT, parse_mode='Md')
+        await client.send_file(TARGET_BOT_USERNAME, chosen_message.media, caption=TEXT)
         logger.info(f"Пост с {media_type.upper()} отправлен. Текст: {TEXT}")
     else:
         logger.info('Не удалось найти сообщения с заданным текстом и медиа.')

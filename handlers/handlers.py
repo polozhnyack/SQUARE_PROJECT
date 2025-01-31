@@ -139,7 +139,7 @@ async def caption_text_post(message: types.Message, state: FSMContext):
         await message.answer("Пост рекомендаций отправлен.")
         return
     
-    text = message.md_text
+    text = message.text
     await selector(TEXT=text)
     await state.clear()
 

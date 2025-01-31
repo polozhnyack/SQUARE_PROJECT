@@ -2,11 +2,14 @@ import requests
 from bs4 import BeautifulSoup
 from config.config import BASE_URL_SSLKN
 from src.utils.urlchek import URLChecker
+from src.services.sosalkino import sosalkino
 
+import asyncio
 
 checker = URLChecker()
+
 # Функция для извлечения и обработки 24 блоков
-def get_video_info(url):
+async def get_video_sslkn(url):
     # Отправляем GET-запрос
     response = requests.get(url)
     response.raise_for_status()
@@ -48,9 +51,9 @@ def get_video_info(url):
     return videos
 
 # Основная программа
-def main():
+async def autosslkn(chat_id):
     # Получаем подходящие ссылки
-    video_links = get_video_info(BASE_URL_SSLKN)
+    video_links = await get_video_sslkn(BASE_URL_SSLKN)
 
     succes = 0
     nonpublish = 0
@@ -58,9 +61,11 @@ def main():
     print(f"Found {len(video_links)} video links.\n")
     for link in video_links:
         if checker.check_url(link, filename='JSON/sslkn.json'):
-            print(link)  # Выводим каждую ссылку на новой строке
+            await sosalkino(link, chat_id)  # Выводим каждую ссылку на новой строке
             nonpublish += 1
+        else:
+            print(f"Опубликованная ссылка: {link}")
 
-# Запускаем основной процесс
-if __name__ == '__main__':
-    main()
+
+if __name__ == "__main__":
+    asyncio.run(autosslkn(BASE_URL_SSLKN))
