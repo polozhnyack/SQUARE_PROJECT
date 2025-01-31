@@ -74,13 +74,10 @@ def fetch_html_parallel(urls):
     return htmls
 
 # Основная программа
-async def autosslkn():
+async def autoposting():
 
 
     urls = [BASE_URL_P365, BASE_URL_SSLKN]
-
-    succes = 0
-    nonpublish = 0
 
     # html_365 = fetcher.fetch_html("http://9porno365.biz/")
     # html_sslkn = fetcher.fetch_html(BASE_URL_SSLKN)
@@ -93,36 +90,32 @@ async def autosslkn():
 
     all_links = p365 + sslkn
 
-    # Перемешиваем объединенный список
-    random.shuffle(all_links)
-
-
-    succes = []
-    nonupl = []
-
-    print(f"\n\nНайдено {len(all_links)} ссылок.\n")
+    content = []
 
     for link in all_links:
         if "sslkn" in link:
             if checker.check_url(link, filename='JSON/sslkn.json'):
-                nonupl.append(link)
+                content.append(link)
             else:
-                succes.append(link)
+                pass
         elif "porno365" in link:
             if checker.check_url(link, filename='JSON/p365.json'):
-                nonupl.append(link)
+                content.append(link)
             else:
-                succes.append(link)
+                pass
 
-    print(f"Опубликованные ссылки:")
-    for i in succes:
-        print(i)
-    print("\n\nНеопубликованный ссылки:")
-    for i in nonupl:
-        print(i)
+    # print(f"Опубликованные ссылки:")
+    # for i in succes:
+    #     print(i)
+    # print("\n\nНеопубликованный ссылки:")
+    # for i in nonupl:
+    #     print(i)
+    random.shuffle(content)
+
+    return content
 
                 
 
 
-if __name__ == "__main__":
-    asyncio.run(autosslkn())
+# if __name__ == "__main__":
+#     asyncio.run(autoposting())

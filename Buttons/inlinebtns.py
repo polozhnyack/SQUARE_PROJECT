@@ -71,13 +71,12 @@ def status_edit(text_edit, edit_status):
     link_post_button = InlineKeyboardButton(text="Видео по ссылке", callback_data="link_post")
     caption_post = InlineKeyboardButton(text="Пост (Фото+текст)", callback_data="caption_post")
     text_post = InlineKeyboardButton(text="Пост (Произвольный)", callback_data="any_post")
-    auto_posting = InlineKeyboardButton(text="Автопостинг", callback_data="auto_posting")
+    auto_posting = InlineKeyboardButton(text="Автопостинг (Ручной)", callback_data="auto_posting")
 
     # Создаем клавиатуру и добавляем кнопки в нужные строки
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [auto_posting],  # Первая кнопка в первой строке
         [caption_post, text_post],
-        [link_post_button]
+        [link_post_button, auto_posting]
     ])
     return keyboard
 

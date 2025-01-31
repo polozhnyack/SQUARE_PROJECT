@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from .state.state import waiting
 from handlers.forward_channel import forward_to_channel
 from handlers.user_link import handle_user_link
+from handlers.auto_posting import auto_link
 
 def register_handlers(dp: Dispatcher):
     from handlers.handlers import (
@@ -23,10 +24,12 @@ def register_handlers(dp: Dispatcher):
     router.message.register(status_posting, Command(commands=['posting']))
     router.callback_query.register(edit_status_module, lambda c: c.data and c.data.startswith('edit_status_'))
 
+
     # router.callback_query.register(manual_post, lambda c: c.data == 'manual_post')
     router.callback_query.register(start_link_post, lambda c: c.data == 'link_post')
     router.callback_query.register(handle_caption_post, lambda c: c.data == 'caption_post')
     router.callback_query.register(any_post, lambda c: c.data == 'any_post')
+    router.callback_query.register(auto_link, lambda c: c.data == 'auto_posting')
     
     router.message.register(handle_user_link, waiting.waiting_video_link_sosalkino)
     router.message.register(caption_text_post, waiting.any_post)

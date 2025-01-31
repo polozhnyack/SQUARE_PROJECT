@@ -221,7 +221,6 @@ async def sosalkino(url, chat_id):
             processed_video_path,
             attributes=(DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True),),
             thumb=resized_img_path,
-            parse_mode=PARSE_MODE,
             caption=title,
             progress_callback=lambda current, total: progress_callback(current, total, chat_id)
         )

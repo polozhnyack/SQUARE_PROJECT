@@ -241,7 +241,6 @@ async def porno365_main(chat_id, link=None):
                 video_file_path,
                 attributes=(DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True),),
                 thumb=resized_img_path,
-                parse_mode=PARSE_MODE,
                 caption=text_post,
                 progress_callback=lambda current, total: progress_callback(current, total, chat_id)
             )
