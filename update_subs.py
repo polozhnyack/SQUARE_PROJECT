@@ -3,7 +3,7 @@ import sqlite3
 from aiogram import Bot
 import asyncio
 
-from config.config import API_ID, API_HASH, PHONE, CHANNEL_ID, TOKEN, ADMIN
+from config.config import API_ID, API_HASH, PHONE, CHANNEL_ID, TOKEN, ADMIN, ADMIN_SESSION_FILE
 
 # Замените следующими значениями ваш API ID и API Hash
 api_id = API_ID
@@ -15,7 +15,7 @@ logger = setup_logger()
 
 
 # Инициализация клиента
-client = TelegramClient('session_name', api_id, api_hash, system_version="4.16.30-vxCUSTOM")
+client = TelegramClient(ADMIN_SESSION_FILE, api_id, api_hash, system_version="4.16.30-vxCUSTOM")
 
 import sqlite3
 
