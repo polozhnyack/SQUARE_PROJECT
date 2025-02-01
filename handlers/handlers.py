@@ -26,6 +26,9 @@ cheсker = URLChecker()
 async def send_welcome(message: types.Message):
     await message.answer("Привет! Я бот, который пересылает сообщения в канал.")
 
+async def logs_handler(message: types.Message):
+    pass
+
 async def manage_users(message: types.Message):
     if message.from_user.id == admin_id:
         await message.answer("Удалить пользователя:", reply_markup=create_users_keyboard())
