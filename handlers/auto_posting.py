@@ -17,12 +17,18 @@ cheсker = URLChecker()
 async def auto_link(query: types.CallbackQuery, state: FSMContext):
 
     links = await autoposting()
-    user_links = "\n".join([str(autolink).strip() for autolink in links])
-    await bot.send_message(
-        chat_id=query.from_user.id,
-        text=f"Получено ссылок: {len(links)}\n\n{user_links}",
-        disable_web_page_preview=True
-    )
+    if not links:
+        await bot.send_message(
+            chat_id=query.from_user.id,
+            text="Новых ссылок не найдено."
+        )
+    else:
+        user_links = "\n".join([str(autolink).strip() for autolink in links])
+        await bot.send_message(
+            chat_id=query.from_user.id,
+            text=f"Получено ссылок: {len(links)}\n\n{user_links}",
+            disable_web_page_preview=True
+        )
 
     processed_links = 0
     failed_links = []

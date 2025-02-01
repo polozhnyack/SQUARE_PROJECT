@@ -1,5 +1,6 @@
 import os
 import json
+import re
 
 class URLChecker:
     def __init__(self, max_links: int = 1000):
@@ -16,10 +17,24 @@ class URLChecker:
                     self.data = []
         else:
             self.data = []
+    
+    def _extract_id(self, url: str) -> str:
+        """Извлекает ID из URL (если есть)."""
+        match = re.search(r'/movie/(\d+)', url)
+        return match.group(1) if match else None
 
     def check_url(self, url: str, filename: str) -> bool:
         """Проверяет, есть ли URL в списке."""
         self._load_data(filename)
+
+        if "porno365" in url:
+            url_id = self._extract_id(url)
+            for stored_url in self.data:
+                if stored_url == url:
+                    return False  # URL уже есть
+                if url_id and self._extract_id(stored_url) == url_id:
+                    return False  # ID уже есть
+                
         return url not in self.data
 
     def add_url(self, url: str):
