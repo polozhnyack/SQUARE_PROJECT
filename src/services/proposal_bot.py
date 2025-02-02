@@ -29,6 +29,7 @@ logger.info("Bot initialized.")
 
 FORBIDDEN_WORDS = ['Cp']
 
+
 # Проверка, забанен ли пользователь
 def is_user_banned(user_id):
     logger.info(f"Checking if user {user_id} is banned.")
@@ -75,12 +76,14 @@ async def forward_proposal_handler(message):
             
             watermark = watermark_proposal
             if message.text:
+                logger.info("Forwarding text message with watermark.")
                 await proposal_bot.send_message(
                     chat_id=CHANNEL_ID,
-                    parse_mode="MarkdownV2",
-                    text=f"{message.text}{watermark}"
+                    parse_mode="Markdown",
+                    text=f"{message.md_text}{watermark}"
                 )
             elif message.photo:
+                logger.info("Forwarding photo message with watermark.")
                 await proposal_bot.send_photo(
                     chat_id=CHANNEL_ID,
                     photo=message.photo[-1].file_id,
@@ -88,37 +91,34 @@ async def forward_proposal_handler(message):
                     caption=f"{message.caption}{watermark}" if message.caption else watermark
                 )
             elif message.video:
+                logger.info("Forwarding video message with watermark.")
                 await proposal_bot.send_video(
                     chat_id=CHANNEL_ID,
                     video=message.video.file_id,
                     parse_mode="MarkdownV2",
                     caption=f"{message.caption}{watermark}" if message.caption else watermark
                 )
-            # Добавьте обработку для других типов сообщений аналогично...
-
+            
             await message.reply("✅ Your message has been automatically published in the channel.")
             return
 
         # Проверяем, есть ли в сообщении запрещенные слова
         if message.text and contains_forbidden_words(message.text):
-            logger.info(f"User {message.from_user.id} used forbidden words. Banning user.")
+            logger.warning(f"User {message.from_user.id} used forbidden words. Banning user.")
             
-            # Получаем имя пользователя или ставим 'Без имени', если оно отсутствует
             username = message.from_user.username if message.from_user.username else 'Без имени'
-
-            # Добавляем пользователя в базу данных забаненных
+            
             with sqlite3.connect('users.db') as conn:
                 cursor = conn.cursor()
                 cursor.execute('INSERT INTO banned (id, username) VALUES (?, ?)', (message.from_user.id, username))
                 conn.commit()
-
-            # Отправляем пользователю сообщение о бане
+            
+            logger.info(f"User {message.from_user.id} added to banned list.")
             await proposal_bot.send_message(
                 message.from_user.id, 
                 "You have been blocked for using banned words. Your message will be reviewed by the administrator. In case of error, you will be unblocked."
             )
-
-            # Отправляем уведомление админу о нарушении
+            
             await proposal_bot.send_message(
                 ADMIN_ID, 
                 f'The user was blocked for using a banned word:\n\n{message.text}\n\nUnblock?', 
@@ -128,19 +128,19 @@ async def forward_proposal_handler(message):
                     message=message.message_id
                 )
             )
-            return  # Прерываем дальнейшую обработку сообщения
+            return
 
-        # Проверяем, заблокирован ли пользователь
         if is_user_banned(message.from_user.id):
-            logger.info(f"User {message.from_user.id} is banned. Sending notification.")
+            logger.warning(f"User {message.from_user.id} is banned. Sending notification.")
             await proposal_bot.send_message(message.from_user.id, "You're banned from this bot!")
             return
 
-        # Отправляем сообщение админу в зависимости от типа контента
         if message.text:
+            logger.info("Sending text message to admin.")
             admin_message = await proposal_bot.send_message(chat_id=ADMIN_ID, text=message.text)
             messages_data[admin_message.message_id] = {"type": "text", "content": message.text}
         elif message.photo:
+            logger.info("Sending photo message to admin.")
             admin_message = await proposal_bot.send_photo(
                 chat_id=ADMIN_ID, 
                 photo=message.photo[-1].file_id, 
@@ -148,30 +148,31 @@ async def forward_proposal_handler(message):
             )
             messages_data[admin_message.message_id] = {"type": "photo", "file_id": message.photo[-1].file_id, "caption": message.caption}
         elif message.video:
+            logger.info("Sending video message to admin.")
             admin_message = await proposal_bot.send_video(
                 chat_id=ADMIN_ID, 
                 video=message.video.file_id, 
                 caption=message.caption
             )
             messages_data[admin_message.message_id] = {"type": "video", "file_id": message.video.file_id, "caption": message.caption}
-        # Добавьте обработку для других типов сообщений аналогично...
 
-        # Отправляем кнопки админу
+        logger.info("Sending admin buttons.")
         await proposal_bot.send_message(
             chat_id=ADMIN_ID,
             text=f"New suggestion from @{message.from_user.username or 'Без имени'} (ID: {message.from_user.id})",
-            parse_mode=PARSE_MODE,
+            parse_mode="Markdown",
             reply_markup=get_admin_buttons(
                 user_id=message.from_user.id,
                 username=message.from_user.username,
                 message=admin_message.message_id,
             )
         )
-        await message.reply("Your proposal has been sent. Thank you! It will be reviewed by the admin.")
+        await message.reply("✅ Your proposal has been sent.")
         
     except Exception as e:
         logger.error(f"Error while processing the message from user {message.from_user.id}: {e}")
         await message.reply("An error occurred while sending your suggestion. Please try again later.")
+
 
 
 @proposal_router.callback_query(lambda c: c.data.startswith("approve"))
