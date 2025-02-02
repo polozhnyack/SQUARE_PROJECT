@@ -33,6 +33,8 @@ async def extract_video_src(html):
     # Поиск тега <div> с классом 'fp-player'
     video_block = soup.find('div', class_='fp-player')
 
+    actors = " ".join(f"#{item.select_one('.info-holder p.title').get_text(strip=True).replace(' ', '_')}" for item in soup.select(".items-list .item, .models-holder .item") if item.select_one(".info-holder p.title"))
+
     description_extract = soup.find('div', class_='tabs-content').find('span', class_='bold').find_next_sibling(string=True).strip()
     
     json_file_path = 'JSON/tags_sslkn.json'
@@ -55,7 +57,7 @@ async def extract_video_src(html):
         if video_src and img_src:
             logger.info(f"Video URL found: {video_src}")
             logger.info(f"Image URL found: {img_src}")
-            return video_src, img_src, description, title, tags
+            return video_src, img_src, description, title, tags, actors
         else:
             logger.warning("No video tag or image tag found in the video block.")
     else:
@@ -101,7 +103,7 @@ async def parse(url, chat_id):
 
                     try:
                         # Извлекаем ссылки на видео, изображение и описание из HTML-контента
-                        video_link, img_link, description, title, tags = await extract_video_src(html_content)
+                        video_link, img_link, description, title, tags, actors = await extract_video_src(html_content)
                         
                         if video_link and img_link:
 
@@ -125,7 +127,7 @@ async def parse(url, chat_id):
                             if video_file_path:
                                 logger.info(f"Video downloaded successfully: {video_file_path}")
                                 await downloader.cleanup()
-                                return video_file_path, img_file_path, description, title, tags
+                                return video_file_path, img_file_path, description, title, tags, actors
                             else:
                                 logger.error("Video download failed.")
                         else:
@@ -147,7 +149,7 @@ async def parse(url, chat_id):
 async def sosalkino(url, chat_id):
 
     chat = chat_id
-    video_path, img_path, description, title, tags = await parse(url, chat_id=chat)
+    video_path, img_path, description, title, tags, actors = await parse(url, chat_id=chat)
 
     # Генерация случайных эмоджи
     num_emodji_start = random.randint(0, 3)
@@ -167,7 +169,7 @@ async def sosalkino(url, chat_id):
         logger.error(f"Translation error: {e}")
         title_en = description_en = "Translation failed."
 
-    title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n{tags}"
+    title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actors}__\n\n{tags}"
 
     img_id = extract_slug(url=url)
     # await save_metadata(url, video_path, img_path, title)

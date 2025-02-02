@@ -51,6 +51,7 @@ async def parse(html):
 
         title = soup.find('h1').get_text()
         description = soup.find('div', class_='story_desription').get_text()
+        actors = ' '.join([f'#{GoogleTranslator(source='ru', target='en').translate(x.get_text()).replace(" ", "_")}' for x in soup.find_all('a', class_='model_link')])
 
         tag_cont = soup.find('div', class_='video-categories').find_all('a')
 
@@ -66,11 +67,11 @@ async def parse(html):
 
         results.append({
             'video': video,
-            # 'video_sd': video_sd,
             'img': image_url,
             'title': title,
             'desc': description,
-            'tags': tags_text
+            'tags': tags_text,
+            'actors': actors
         })
 
         return results
@@ -123,6 +124,7 @@ async def porno365_main(chat_id, link=None):
         img_url = first_item.get('img')
         description = first_item.get('desc')
         tags = first_item.get('tags')
+        actros = first_item.get('actors')
 
         downloader = MediaDownloader(save_directory="media/video", chat_id=chat)
 
@@ -196,7 +198,7 @@ async def porno365_main(chat_id, link=None):
             remaining_emodji = list(set(emodji) - set(selected_emodji_start))
             selected_emodji_end = random.sample(remaining_emodji, min(num_emodji_end, len(remaining_emodji)))
 
-        text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n{formatted_tags}"
+        text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actros}__\n\n{formatted_tags}"
 
         client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
         await client.start(phone=PHONE)
