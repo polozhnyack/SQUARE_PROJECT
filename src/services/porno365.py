@@ -42,7 +42,6 @@ async def parse(html):
 
 
         title = soup.find('h1').get_text()
-        description = soup.find('div', class_='story_desription').get_text()
         actors = ' '.join([f'#{GoogleTranslator(source='ru', target='en').translate(x.get_text()).replace(" ", "_")}' for x in soup.find_all('a', class_='model_link')])
 
         tag_cont = soup.find('div', class_='video-categories').find_all('a')
@@ -61,7 +60,6 @@ async def parse(html):
             'video': video,
             'img': image_url,
             'title': title,
-            'desc': description,
             'tags': tags_text,
             'actors': actors
         })
@@ -114,7 +112,6 @@ async def porno365_main(chat_id, link=None):
         title = first_item.get('title')
         video_url = first_item.get('video')
         img_url = first_item.get('img')
-        description = first_item.get('desc')
         tags = first_item.get('tags')
         actros = first_item.get('actors')
 
@@ -160,7 +157,6 @@ async def porno365_main(chat_id, link=None):
 
         try:
             title_en = GoogleTranslator(source='auto', target='en').translate(title)
-            description_en = GoogleTranslator(source='auto', target='en').translate(description)
             logger.info("Translation using deep_translator was successful.")
 
         except Exception as e:
@@ -171,7 +167,6 @@ async def porno365_main(chat_id, link=None):
             try:
                 google_translator = GoogleTrans()
                 title_en = await google_translator.translate(title, src='auto', dest='en').text
-                description_en = await google_translator.translate(description, src='auto', dest='en').text
                 logger.info("Translation using googletrans was successful.")
             except Exception as e:
                 logger.error(f"Error with googletrans: {e}")
@@ -189,7 +184,7 @@ async def porno365_main(chat_id, link=None):
             remaining_emodji = list(set(emodji) - set(selected_emodji_start))
             selected_emodji_end = random.sample(remaining_emodji, min(num_emodji_end, len(remaining_emodji)))
 
-        text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actros}__\n\n{formatted_tags}"
+        text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actros}__\n\n{formatted_tags}"
 
         probe = ffmpeg.probe(video_file_path)
         video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
