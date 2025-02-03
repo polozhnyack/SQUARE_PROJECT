@@ -1,13 +1,8 @@
-import time
-import cv2
-from datetime import datetime
 import random
 from urllib.parse import urlparse
 import os
 
 import ffmpeg
-from telethon import TelegramClient
-from telethon.tl.types import DocumentAttributeVideo
 
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
@@ -16,11 +11,11 @@ from src.utils.find_tags import fetch_tags
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
-from src.utils.cleaner import clear_directory
 from src.utils.resizer_img import scale_img
 
-from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji
-from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE, PARSE_MODE
+from src.modules.video_uploader import upload_videos
+
+from config.config import CHANNEL, emodji
 from config.settings import setup_logger
 
 logger = setup_logger()
@@ -169,7 +164,7 @@ async def sosalkino(url, chat_id):
         logger.error(f"Translation error: {e}")
         title_en = description_en = "Translation failed."
 
-    title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actors}__\n\n{tags}"
+    title_ = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actors}__\n\n{tags}"
 
     img_id = extract_slug(url=url)
     # await save_metadata(url, video_path, img_path, title)
@@ -185,62 +180,28 @@ async def sosalkino(url, chat_id):
     metadata = MetadataSaver()
     metadata.save_metadata(filename=img_id, url=url, video_path=processed_video_path, img_path=resized_img_path, title=title)
 
-    client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
-    await client.start(phone=PHONE)
-
     probe = ffmpeg.probe(processed_video_path)
     video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
     width, height, duration = int(video_info['width']), int(video_info['height']), int(float(video_info['duration']))
 
     total_size = os.path.getsize(video_path)
-    # progress_bar = tqdm(total=total_size, unit='B', unit_scale=True, desc='Uploading')
 
-    # Локальные переменные для прогресса
-    progress_state = {"last_update_time": 0, "progress_message": None}
 
-    async def progress_callback(current, total, chat_id):
-        if progress_state["progress_message"] is None:
-            progress_state["progress_message"] = await bot.send_message(chat_id, "Начинаем выгрузку...")
+    post_info = {
+        'processed_video_path': processed_video_path,
+        'resized_img_path': resized_img_path,
+        'title': title,
+        'duration': duration,
+        'width': width,
+        'height': height,
+        'url': url,
+        'channel': CHANNEL,
+        'chat': chat_id
+    }
 
-        now = time.time()
-        if now - progress_state["last_update_time"] > DELAY_EDIT_MESSAGE:
-            percent = (current / total) * 100
-            progress_text = f"Выгрузка: {percent:.2f}%"
+    result = await upload_videos(video_info=post_info)
 
-            formatted_time = datetime.now().strftime("%H:%M")
-
-            progress_text = (
-                    f"⬆️ Выгруженно: {percent:.2f}%\n"
-                    f"⏰ Последнее обновление: {formatted_time}"
-            )
-
-            await bot.edit_message_text(progress_text, chat_id=chat_id, message_id=progress_state["progress_message"].message_id)
-            progress_state["last_update_time"] = now
-
-    try:
-        await client.send_file(
-            CHANNEL,
-            processed_video_path,
-            attributes=(DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True),),
-            thumb=resized_img_path,
-            caption=title,
-            progress_callback=lambda current, total: progress_callback(current, total, chat_id)
-        )
-    except Exception as e:
-        logger.error(f"Ошибка при выгрузке: {e}")
-
-        await bot.send_message(chat_id=chat, 
-                        text=f"*❌ ОШИБКА ПРИ ВЫГРУЗКЕ ❌*\nВидео: {url} небыло выгружено.\n Ошибка: {e}",
-                        parse_mode='Markdown'
-                        )
-        await clear_directory('media/video')
-        await client.disconnect()
-        return url
-    
-    finally:
-        if progress_state["progress_message"]:
-            await bot.delete_message(chat_id=chat, message_id=progress_state["progress_message"].message_id)
-
-    await client.disconnect()
-    await clear_directory('media/video')
-    return True
+    if result == True:
+        return True
+    else: 
+        return result

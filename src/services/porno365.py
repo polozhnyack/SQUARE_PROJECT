@@ -1,32 +1,24 @@
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 import random
-from config.config import API_HASH, API_ID, PHONE, CHANNEL, emodji, PHONE, PARSE_MODE
+from config.config import CHANNEL, emodji
 from db.db import Database
 
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
-from src.utils.cleaner import clear_directory
 from src.utils.resizer_img import scale_img
+from src.modules.video_uploader import upload_videos
 
 from googletrans import Translator as GoogleTrans
 
 from deep_translator import GoogleTranslator
-from telethon import TelegramClient
-from telethon.types import DocumentAttributeVideo
 
-from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE
 from config.settings import setup_logger
 
-import time
 import re
 import os
-import cv2
-import asyncio
 from tqdm import tqdm
-import sys
-from datetime import datetime
 import ffmpeg
 from urllib.parse import urlparse
 
@@ -200,9 +192,6 @@ async def porno365_main(chat_id, link=None):
 
         text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actros}__\n\n{formatted_tags}"
 
-        client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
-        await client.start(phone=PHONE)
-
         probe = ffmpeg.probe(video_file_path)
         video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
         width = int(video_info['width'])
@@ -211,61 +200,24 @@ async def porno365_main(chat_id, link=None):
 
         total_size = os.path.getsize(video_file_path)
 
-        # Инициализация прогресс-бара
-        progress_bar = tqdm(total=total_size, unit='B', unit_scale=True, desc='Uploading', file=sys.stderr)
-
-        # Локальные переменные для прогресса
-        progress_state = {"last_update_time": 0, "progress_message": None}
 
         metadata.save_metadata(filename=video_id, video_path=video_file_path, img_path=resized_img_path, title=text_post, url=link)
 
-        async def progress_callback(current, total, chat_id):
-            if progress_state["progress_message"] is None:
-                progress_state["progress_message"] = await bot.send_message(chat_id, "Начинаем выгрузку...")
+        post_info = {
+            'processed_video_path': video_file_path,
+            'resized_img_path': resized_img_path,
+            'title': text_post,
+            'duration': duration,
+            'width': width,
+            'height': height,
+            'url': url,
+            'channel': CHANNEL,
+            'chat': chat_id
+        }
 
-            now = time.time()
-            if now - progress_state["last_update_time"] > DELAY_EDIT_MESSAGE:
+        result = await upload_videos(video_info=post_info)
 
-                formatted_time = datetime.now().strftime("%H:%M")
-                percent = (current / total) * 100
-
-                progress_text = (
-                    f"⬆️ Выгруженно: {percent:.2f}%\n"
-                    f"⏰ Последнее обновление: {formatted_time}"
-                )
-                # progress_text = f"Выгрузка: {percent:.2f}%"
-                await bot.edit_message_text(progress_text, chat_id=chat_id, message_id=progress_state["progress_message"].message_id)
-                progress_state["last_update_time"] = now
-
-        try:
-            await client.send_file(
-                CHANNEL,
-                video_file_path,
-                attributes=(DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True),),
-                thumb=resized_img_path,
-                caption=text_post,
-                progress_callback=lambda current, total: progress_callback(current, total, chat_id)
-            )
-        except Exception as e:
-            logger.error(f"Ошибка при выгрузке: {e}")
-            await bot.send_message(chat_id=chat, 
-                                   text=f"*❌ ОШИБКА ПРИ ВЫГРУЗКЕ ❌*\nВидео: {link} небыло выгружено.\n Ошибка: {e}",
-                                   parse_mode='Markdown'
-                                   )
-            await clear_directory('media/video')
-            await client.disconnect()
-            return link
-        finally:
-            if progress_state["progress_message"]:
-                await bot.delete_message(chat_id=chat, message_id=progress_state["progress_message"].message_id)
-
-        await client.disconnect()
-
-        await asyncio.sleep(3)
-
-        await clear_directory('media/video')
-    else:
-        logger.warning("No information found in the parsed content.")
-        return link
-
-    return True
+        if result == True:
+            return True
+        else: 
+            return result

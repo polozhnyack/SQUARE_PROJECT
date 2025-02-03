@@ -47,14 +47,32 @@ class MediaDownloader:
             await self.bot.edit_message_text(progress_text, chat_id=self.chat_id, message_id=self.progress_message.message_id)
             self.last_update_time = now
 
-    async def download_file(self, session, url, file_path, description):
-        """Helper method to download a file from a URL asynchronously."""
+    async def download_file(self, session, url, file_path, description, retries=10):
         try:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    total_size = int(response.headers.get('Content-Length', 0))
-                    with open(file_path, 'wb') as file, tqdm(
+            # Проверяем, существует ли файл и вычисляем его размер
+            if os.path.exists(file_path):
+                current_size = os.path.getsize(file_path)
+                logger.info(f"{description} file exists, starting from byte {current_size}")
+            else:
+                current_size = 0
+                logger.info(f"{description} file does not exist, starting fresh.")
+
+            # Устанавливаем заголовок Range, чтобы продолжить загрузку с места прерывания
+            headers = {}
+            if current_size > 0:
+                headers['Range'] = f"bytes={current_size}-"  # Запрашиваем байты с текущей позиции
+
+            # Установка тайм-аутов для соединения
+            timeout = aiohttp.ClientTimeout(total=60, connect=30, sock_connect=30, sock_read=30)
+            
+            async with session.get(url, headers=headers, timeout=timeout) as response:
+                if response.status == 200 or response.status == 206:
+                    total_size = int(response.headers.get('Content-Length', 0)) + current_size
+                    logger.info(f"Starting to download {description}, total size: {total_size} bytes")
+
+                    with open(file_path, 'ab') as file, tqdm(
                         desc=description,
+                        initial=current_size,
                         total=total_size,
                         unit="B",
                         unit_scale=True,
@@ -63,20 +81,25 @@ class MediaDownloader:
                         async for chunk in response.content.iter_chunked(8192):
                             file.write(chunk)
                             progress_bar.update(len(chunk))
-                            if description == "Image":
-                                pass
-                            else:
-                                await self.progress_callback(progress_bar.n, total_size, description)
+                            await self.progress_callback(progress_bar.n, total_size, description)
+
                     logger.info(f"{description} downloaded successfully and saved to {file_path}")
                 else:
                     logger.error(f"Failed to download {description}. Status code: {response.status} for URL {url}")
+                    return None
         except Exception as e:
-            logger.error(f"An error occurred while downloading {description}: {e}")
-            self.bot.send_message(chat_id=self.chat_id, 
-                                   text=f"*❌ ОШИБКА ПРИ ЗАГРУЗКЕ ❌*\nВидео: {url} небыло выгружено.\n Ошибка: {e}",
-                                   parse_mode='Markdown'
-                                   )
-            return None
+            logger.error(f"Error occurred while downloading {description}: {e}")
+            if retries > 0:
+                logger.warning(f"Retrying download for {description}, attempts left: {retries}")
+                return await self.download_file(session, url, file_path, description, retries - 1)
+            else:
+                logger.error(f"Failed to download {description} after multiple attempts: {e}")
+                self.bot.send_message(chat_id=self.chat_id, 
+                                    text=f"*❌ ОШИБКА ПРИ ЗАГРУЗКЕ ❌*\n{description}: {url} не было выгружено.\nОшибка: {e}",
+                                    parse_mode='Markdown'
+                                    )
+                return None
+
 
     
 
