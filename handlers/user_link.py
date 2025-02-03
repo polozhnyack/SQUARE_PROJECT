@@ -3,6 +3,7 @@ from aiogram import types
 from aiogram.fsm.context import FSMContext
 from src.services.porno365 import porno365_main
 from src.services.sosalkino import sosalkino
+from src.services.xvideos import xvideos
 from src.utils.urlchek import URLChecker
 
 from src.modules.media_selector import selector
@@ -73,8 +74,22 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                     failed_links.append(result) 
             else: 
                 await bot.send_message(text=f"Видео по ссылке {user_link} уже было опубликовано. Ссылка была пропущена.", chat_id=message.chat.id)
+        
+        elif "xvideos" in user_link:
+            if cheсker.check_url(user_link, filename="JSON/xvideos.json"):
+                result = await xvideos(user_link, chat_id=message.chat.id)
+
+                if result is True:
+                    cheсker.save_url(user_link, filename="JSON/xvideos.json")
+                    processed_links += 1
+                else:
+                    logger.warning(f"Не удалось обработать ссылку: {user_link}")
+                    failed_links.append(result) 
+            else: 
+                await bot.send_message(text=f"Видео по ссылке {user_link} уже было опубликовано. Ссылка была пропущена.", chat_id=message.chat.id)
         else:
             await message.answer(f"Ссылка '{user_link}' не соответствует зарегистрированным сайтам. Пожалуйста, проверьте ссылку.")
+
 
 
     if processed_links > 10:

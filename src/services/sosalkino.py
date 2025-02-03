@@ -169,11 +169,6 @@ async def sosalkino(url, chat_id):
     img_id = extract_slug(url=url)
     # await save_metadata(url, video_path, img_path, title)
 
-    resized_img_path = f'media/video/{img_id}_resized_img.jpg'
-    success = await scale_img(img_path, resized_img_path)
-    if not success:
-        logger.error("Failed to scale image to video resolution.")
-        return
 
     processed_video_path = video_path
 
@@ -186,6 +181,11 @@ async def sosalkino(url, chat_id):
 
     total_size = os.path.getsize(video_path)
 
+    resized_img_path = f'media/video/{img_id}_resized_img.jpg'
+    success = await scale_img(img_path, resized_img_path, width, height)
+    if not success:
+        logger.error("Failed to scale image to video resolution.")
+        return
 
     post_info = {
         'processed_video_path': processed_video_path,

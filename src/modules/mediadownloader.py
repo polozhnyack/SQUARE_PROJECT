@@ -36,7 +36,7 @@ class MediaDownloader:
             self.progress_message = await self.bot.send_message(self.chat_id, f"Начинаем загрузку...")
 
         now = time.time()
-        if now - self.last_update_time > DELAY_EDIT_MESSAGE:  # Обновляем сообщение раз в 2 минуты
+        if now - self.last_update_time > DELAY_EDIT_MESSAGE:  # Обновляем сообщение раз в DELAY_EDIT_MESSAGE секунд
             percent = (current / total) * 100  # Рассчитываем проценты
             formatted_time = datetime.now().strftime("%H:%M")
 
@@ -47,9 +47,13 @@ class MediaDownloader:
             await self.bot.edit_message_text(progress_text, chat_id=self.chat_id, message_id=self.progress_message.message_id)
             self.last_update_time = now
 
+        # Когда загрузка завершена
+        if current >= total:  # Проверяем, завершена ли загрузка
+            await self.bot.delete_message(chat_id=self.chat_id, message_id=self.progress_message.message_id)
+            self.progress_message = None  # Обнуляем ссылку на сообщение, чтобы не обновлять его больше
+
     async def download_file(self, session, url, file_path, description, retries=10):
         try:
-            # Проверяем, существует ли файл и вычисляем его размер
             if os.path.exists(file_path):
                 current_size = os.path.getsize(file_path)
                 logger.info(f"{description} file exists, starting from byte {current_size}")
@@ -57,12 +61,10 @@ class MediaDownloader:
                 current_size = 0
                 logger.info(f"{description} file does not exist, starting fresh.")
 
-            # Устанавливаем заголовок Range, чтобы продолжить загрузку с места прерывания
             headers = {}
             if current_size > 0:
-                headers['Range'] = f"bytes={current_size}-"  # Запрашиваем байты с текущей позиции
+                headers['Range'] = f"bytes={current_size}-"
 
-            # Установка тайм-аутов для соединения
             timeout = aiohttp.ClientTimeout(total=60, connect=30, sock_connect=30, sock_read=30)
             
             async with session.get(url, headers=headers, timeout=timeout) as response:
@@ -81,8 +83,10 @@ class MediaDownloader:
                         async for chunk in response.content.iter_chunked(8192):
                             file.write(chunk)
                             progress_bar.update(len(chunk))
-                            await self.progress_callback(progress_bar.n, total_size, description)
-
+                            
+                            if "img" not in description.lower():  # Отключаем прогресс для изображений
+                                await self.progress_callback(progress_bar.n, total_size, description)
+                    
                     logger.info(f"{description} downloaded successfully and saved to {file_path}")
                 else:
                     logger.error(f"Failed to download {description}. Status code: {response.status} for URL {url}")

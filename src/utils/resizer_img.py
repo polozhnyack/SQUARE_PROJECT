@@ -4,11 +4,11 @@ from config.settings import setup_logger
 logger = setup_logger()
 
 
-async def scale_img(image_path, output_image_path):
+async def scale_img(image_path, output_image_path, width, height):
     """Масштабирует изображение до разрешения 360p (640x360) с использованием OpenCV."""
     try:
         # Разрешение 360p
-        width, height = 640, 360
+        # width, height = 640, 360
 
         # Открытие изображения
         img = cv2.imread(image_path)

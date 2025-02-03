@@ -130,7 +130,6 @@ async def porno365_main(chat_id, link=None):
 
         await downloader.cleanup()
 
-        await scale_img(image_path=img_file_path, output_image_path=resized_img_path)
 
         tags_list = [tag.strip() for tag in tags.split(',')]
 
@@ -200,6 +199,7 @@ async def porno365_main(chat_id, link=None):
 
         total_size = os.path.getsize(video_file_path)
 
+        await scale_img(image_path=img_file_path, output_image_path=resized_img_path, width=width, height=height)
 
         metadata.save_metadata(filename=video_id, video_path=video_file_path, img_path=resized_img_path, title=text_post, url=link)
 
