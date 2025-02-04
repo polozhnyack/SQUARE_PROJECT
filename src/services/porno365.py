@@ -38,7 +38,7 @@ async def parse(html):
 
         # video = soup.find('video', class_='jw-video jw-reset').get('src')
 
-        video = soup.find('a', title='Мобильное качество').get('href')
+        video = soup.find('a', title='Среднее качество').get('href')
 
 
         title = soup.find('h1').get_text()
@@ -91,7 +91,7 @@ def extract_movie_id(url: str, domain_keyword: str = "porno365") -> str:
         logger.error(f"Ошибка при извлечении идентификатора из URL: {e}")
         return ""
 
-async def porno365_main(chat_id, link=None):
+async def porno365_main(link, chat_id):
 
     metadata = MetadataSaver()
     video_id = extract_movie_id(link)

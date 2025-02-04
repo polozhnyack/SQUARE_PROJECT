@@ -29,16 +29,9 @@ async def extract_video_src(html):
     video_block = soup.find('div', class_='fp-player')
 
     actors = " ".join(f"#{item.select_one('.info-holder p.title').get_text(strip=True).replace(' ', '_')}" for item in soup.select(".items-list .item, .models-holder .item") if item.select_one(".info-holder p.title"))
-
-    description_extract = soup.find('div', class_='tabs-content').find('span', class_='bold').find_next_sibling(string=True).strip()
     
     json_file_path = 'JSON/tags_sslkn.json'
     tags = fetch_tags(html, json_file_path)
-
-    if description_extract:
-        description = description_extract
-    else:
-        description = None
 
     if video_block:
         video_tag = video_block.find('video', class_='fp-engine')
@@ -52,7 +45,7 @@ async def extract_video_src(html):
         if video_src and img_src:
             logger.info(f"Video URL found: {video_src}")
             logger.info(f"Image URL found: {img_src}")
-            return video_src, img_src, description, title, tags, actors
+            return video_src, img_src, title, tags, actors
         else:
             logger.warning("No video tag or image tag found in the video block.")
     else:
@@ -98,7 +91,7 @@ async def parse(url, chat_id):
 
                     try:
                         # Извлекаем ссылки на видео, изображение и описание из HTML-контента
-                        video_link, img_link, description, title, tags, actors = await extract_video_src(html_content)
+                        video_link, img_link, title, tags, actors = await extract_video_src(html_content)
                         
                         if video_link and img_link:
 
@@ -122,7 +115,7 @@ async def parse(url, chat_id):
                             if video_file_path:
                                 logger.info(f"Video downloaded successfully: {video_file_path}")
                                 await downloader.cleanup()
-                                return video_file_path, img_file_path, description, title, tags, actors
+                                return video_file_path, img_file_path, title, tags, actors
                             else:
                                 logger.error("Video download failed.")
                         else:
@@ -144,7 +137,7 @@ async def parse(url, chat_id):
 async def sosalkino(url, chat_id):
 
     chat = chat_id
-    video_path, img_path, description, title, tags, actors = await parse(url, chat_id=chat)
+    video_path, img_path, title, tags, actors = await parse(url, chat_id=chat)
 
     # Генерация случайных эмоджи
     num_emodji_start = random.randint(0, 3)
@@ -159,18 +152,17 @@ async def sosalkino(url, chat_id):
 
     try:
         title_en = GoogleTranslator(source='auto', target='en').translate(title)
-        description_en = GoogleTranslator(source='auto', target='en').translate(description)
     except Exception as e:
         logger.error(f"Translation error: {e}")
-        title_en = description_en = "Translation failed."
 
-    title_ = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__{description_en}__\n\n__Actors: {actors}__\n\n{tags}"
+    title_en = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 
     img_id = extract_slug(url=url)
     # await save_metadata(url, video_path, img_path, title)
 
 
     processed_video_path = video_path
+    resized_img_path = f'media/video/{img_id}_resized_img.jpg'
 
     metadata = MetadataSaver()
     metadata.save_metadata(filename=img_id, url=url, video_path=processed_video_path, img_path=resized_img_path, title=title)
@@ -181,7 +173,6 @@ async def sosalkino(url, chat_id):
 
     total_size = os.path.getsize(video_path)
 
-    resized_img_path = f'media/video/{img_id}_resized_img.jpg'
     success = await scale_img(img_path, resized_img_path, width, height)
     if not success:
         logger.error("Failed to scale image to video resolution.")
@@ -190,7 +181,7 @@ async def sosalkino(url, chat_id):
     post_info = {
         'processed_video_path': processed_video_path,
         'resized_img_path': resized_img_path,
-        'title': title,
+        'title': title_en,
         'duration': duration,
         'width': width,
         'height': height,

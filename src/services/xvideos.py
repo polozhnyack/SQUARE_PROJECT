@@ -6,42 +6,29 @@ from src.modules.video_uploader import upload_videos
 from src.utils.resizer_img import scale_img
 from config.config import CHANNEL, emodji
 from src.modules.mediadownloader import MediaDownloader
-from templates.phrases import water_mark
+
 
 import asyncio
 import re
 import html
 import random
 
-
-
 logger = setup_logger()
-
-# url = "https://www.xvideos.com/video.iihukdf2958/busty_lesbians_jasmine_jae_and_ania_kinski_fuck_the_realtor"
 clientX = Client()
 
 async def parse(url: str):
 
     logger.info("Xvideos запущена")
 
-    results = []
-
     video = clientX.get_video(url=url)
-
-    desc = video.description
-    title = video.title
-    tags = video.tags
-    thumbnail_url = video.thumbnail_url
-    content = video.content_url
-    actors = video.pornstars
+    filtered_tags = ['#' + tag for tag in video.tags if '-' not in tag]
 
     results = {
-        'video': content,
-        'img_url' : thumbnail_url,
-        'title': title,
-        'desc': desc,
-        'tags': tags,
-        'ators': actors
+        'video': video.content_url,
+        'img_url' : video.thumbnail_url,
+        'title': video.title,
+        'tags': filtered_tags,
+        'ators': video.pornstars
     }
 
     return results
@@ -72,20 +59,8 @@ async def xvideos(url, chat_id):
     img = line.get('img_url')
 
     title = clean_text(line.get('title', ''))
-    desc = clean_text(line.get('desc', ''))
-    tags = line.get('tags', [])
-    actors = line.get('actors', [])
+    tags = ' '.join(line.get('tags', []))
 
-    # Фильтруем теги и актеров
-    tags = filter_elements(tags)
-    actors = filter_elements(actors)
-
-    # Чистим текст тега
-    tags = [clean_text(tag) for tag in tags]
-    actors = [clean_text(actor) for actor in actors]
-
-    # Форматируем теги с #
-    formatted_tags = ' '.join(f'#{tag}' for tag in tags)
 
     title_file = re.sub(r'\s+', '_', line.get('title', ''))
 
@@ -103,7 +78,7 @@ async def xvideos(url, chat_id):
         selected_emodji_end = random.sample(remaining_emodji, min(num_emodji_end, len(remaining_emodji)))
 
     # Формируем финальный текст
-    text = f"{''.join(selected_emodji_start)}**{title.upper()}**{''.join(selected_emodji_end)}"
+    text = f"{''.join(selected_emodji_start)}**{title.upper()}**{''.join(selected_emodji_end)}\n\n{tags}"
 
     video_file, imd_file = await downloader.download_media(video_filename=title_file, img_filename=title_file, video_url=video, img_url=img)
 

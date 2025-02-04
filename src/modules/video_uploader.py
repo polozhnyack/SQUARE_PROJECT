@@ -69,7 +69,8 @@ async def upload_videos(video_info: dict):
 
         await bot.send_message(chat_id=chat, 
                         text=f"*❌ ОШИБКА ПРИ ВЫГРУЗКЕ ❌*\nВидео: {url} небыло выгружено.\n Ошибка: {e}",
-                        parse_mode='Markdown'
+                        parse_mode='Markdown',
+                        disable_web_page_preview=True
                         )
         # Очищаем директорию и отключаем клиент
         await clear_directory('media/video')
