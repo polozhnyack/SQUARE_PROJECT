@@ -2,20 +2,19 @@ import random
 from urllib.parse import urlparse
 import os
 
-import ffmpeg
-
 from bs4 import BeautifulSoup
-from deep_translator import GoogleTranslator
 
 from src.utils.find_tags import fetch_tags
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
 from src.utils.resizer_img import scale_img
-
+from src.utils.emoji_generator import generate_emojis
+from src.utils.translator import translate_text
 from src.modules.video_uploader import upload_videos
+from src.utils.videoinfo import get_video_info
 
-from config.config import CHANNEL, emodji
+from config.config import CHANNEL
 from config.settings import setup_logger
 
 logger = setup_logger()
@@ -24,34 +23,45 @@ async def extract_video_src(html):
     logger.info("Extracting video source from HTML content")
 
     soup = BeautifulSoup(html, 'html.parser')
-    
+
     # Поиск тега <div> с классом 'fp-player'
     video_block = soup.find('div', class_='fp-player')
-
-    actors = " ".join(f"#{item.select_one('.info-holder p.title').get_text(strip=True).replace(' ', '_')}" for item in soup.select(".items-list .item, .models-holder .item") if item.select_one(".info-holder p.title"))
     
+    if not video_block:
+        logger.warning("No video block found in the HTML content.")
+        return None, None, None, None, None
+
+    # Извлечение актёров
+    actors = " ".join(
+        f"#{item.select_one('.info-holder p.title').get_text(strip=True).replace(' ', '_')}"
+        for item in soup.select(".items-list .item, .models-holder .item")
+        if item.select_one(".info-holder p.title")
+    )
+
+    # Извлечение тегов
     json_file_path = 'JSON/tags_sslkn.json'
     tags = fetch_tags(html, json_file_path)
 
-    if video_block:
-        video_tag = video_block.find('video', class_='fp-engine')
-        video_src = video_tag.get('src') if video_tag else None
+    # Извлечение видео и изображения
+    video_tag = video_block.find('video', class_='fp-engine')
+    video_src = video_tag.get('src') if video_tag else None
 
-        img_tag = video_block.find('img')
-        img_src = img_tag.get('src') if img_tag else None
+    img_tag = video_block.find('img')
+    img_src = img_tag.get('src') if img_tag else None
 
-        title = title = soup.find('div', class_='title-video').get_text().strip()
+    # Извлечение названия видео
+    title_tag = soup.find('div', class_='title-video')
+    title = title_tag.get_text(strip=True) if title_tag else "Untitled Video"
 
-        if video_src and img_src:
-            logger.info(f"Video URL found: {video_src}")
-            logger.info(f"Image URL found: {img_src}")
-            return video_src, img_src, title, tags, actors
-        else:
-            logger.warning("No video tag or image tag found in the video block.")
+    # Проверка наличия видео и изображения
+    if video_src and img_src:
+        logger.info(f"Video URL found: {video_src}")
+        logger.info(f"Image URL found: {img_src}")
+        return video_src, img_src, title, tags, actors
     else:
-        logger.warning("No video block found in the HTML content.")
+        logger.warning("No video or image URL found in the video block.")
+        return None, None, None, None, None
 
-    return None, None
 
 def extract_slug(url: str) -> str:
     """
@@ -72,106 +82,87 @@ def extract_slug(url: str) -> str:
 async def parse(url, chat_id):
     logger.info("Starting parse function")
 
+    # Проверяем, что URL передан
+    if not url:
+        logger.warning("No video URL provided.")
+        return None, None, None, None, None
+
+    logger.info(f"Video URL: {url}")
+
     try:
-        # Используем переданный URL напрямую
-        content_url = url
+        # Получаем HTML-контент страницы видео
+        fetcher = SeleniumFetcher()
+        html_content = fetcher.fetch_html(url)
 
-        if content_url:
-            logger.info(f"Video URL: {content_url}")
+        # Проверяем, был ли успешно получен HTML-контент
+        if not html_content:
+            logger.error("Failed to fetch HTML content. Skipping extraction and download.")
+            return None, None, None, None, None
 
-            try:
-                # Получаем HTML-контент страницы видео
-                fetcher = SeleniumFetcher()
-                # html_content = await fetch_html_with_selenium(content_url)
-                html_content = fetcher.fetch_html(url)
-                
-                
-                if html_content:
-                    logger.info("HTML content fetched successfully")
+        logger.info("HTML content fetched successfully")
 
-                    try:
-                        # Извлекаем ссылки на видео, изображение и описание из HTML-контента
-                        video_link, img_link, title, tags, actors = await extract_video_src(html_content)
-                        
-                        if video_link and img_link:
+        # Извлекаем ссылки на видео, изображение и описание
+        try:
+            video_link, img_link, title, tags, actors = await extract_video_src(html_content)
+            if not video_link or not img_link:
+                logger.warning("No video or image link found in HTML content. Skipping download.")
+                return None, None, None, None, None
+        except Exception as e:
+            logger.error(f"Error extracting video link: {e}")
+            return None, None, None, None, None
 
-                            filename = extract_slug(url)
+        # Извлекаем имя файла из URL
+        filename = extract_slug(url)
 
-                            logger.info(f"Video link extracted: {video_link}")
-                            logger.info(f"Image link extracted: {img_link}")
+        logger.info(f"Video link extracted: {video_link}")
+        logger.info(f"Image link extracted: {img_link}")
 
-                            save_directory = 'media/video'
-                            video_filename = f'{filename}'
-                            img_filename = f'{filename}'
+        save_directory = 'media/video'
+        video_filename = f'{filename}'
+        img_filename = f'{filename}'
 
-                            logger.info(f"Starting download: {video_filename}")
+        # Загружаем видео и изображение
+        logger.info(f"Starting download: {video_filename}")
+        downloader = MediaDownloader(save_directory="media/video", chat_id=chat_id)
 
-                            downloader = MediaDownloader(save_directory="media/video", chat_id=chat_id)
+        video_file_path, img_file_path = await downloader.download_media(video_link, img_link, video_filename, img_filename)
 
-                            # Скачиваем видео и изображение
-                            video_file_path, img_file_path = await downloader.download_media(video_link, img_link, video_filename, img_filename)
-                            # video_file_path, img_file_path = 1
+        if not video_file_path:
+            logger.error("Video download failed.")
+            await downloader.cleanup()
+            return None, None, None, None, None
 
-                            if video_file_path:
-                                logger.info(f"Video downloaded successfully: {video_file_path}")
-                                await downloader.cleanup()
-                                return video_file_path, img_file_path, title, tags, actors
-                            else:
-                                logger.error("Video download failed.")
-                        else:
-                            logger.warning("No video or image link found in HTML content. Skipping download.")
-                    except Exception as e:
-                        logger.error(f"Error extracting video link: {e}")
-                else:
-                    logger.error("Failed to fetch HTML content. Skipping extraction and download.")
-            except Exception as e:
-                logger.error(f"Error fetching HTML content with Selenium: {e}")
-        else:
-            logger.warning("No video URL provided.")
+        logger.info(f"Video downloaded successfully: {video_file_path}")
+        await downloader.cleanup()
+
+        # Возвращаем результаты
+        return video_file_path, img_file_path, title, tags, actors
+
     except Exception as e:
         logger.error(f"Unexpected error occurred: {e}")
+        return None, None, None, None, None
 
-    # Возвращаем None, если произошла ошибка или нет данных
-    return None, None, None, None, None
 
 async def sosalkino(url, chat_id):
 
     chat = chat_id
     video_path, img_path, title, tags, actors = await parse(url, chat_id=chat)
 
-    # Генерация случайных эмоджи
-    num_emodji_start = random.randint(0, 3)
-    num_emodji_end = random.randint(0, 3)
+    selected_emodji_start, selected_emodji_end = generate_emojis()
 
-    selected_emodji_start = random.sample(emodji, num_emodji_start) if num_emodji_start > 0 else []
-    selected_emodji_end = []
-
-    if num_emodji_end > 0:
-        remaining_emodji = list(set(emodji) - set(selected_emodji_start))
-        selected_emodji_end = random.sample(remaining_emodji, min(num_emodji_end, len(remaining_emodji)))
-
-    try:
-        title_en = GoogleTranslator(source='auto', target='en').translate(title)
-    except Exception as e:
-        logger.error(f"Translation error: {e}")
+    title_en = translate_text(title)
 
     title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 
     img_id = extract_slug(url=url)
     # await save_metadata(url, video_path, img_path, title)
 
-
-    processed_video_path = video_path
     resized_img_path = f'media/video/{img_id}_resized_img.jpg'
 
     metadata = MetadataSaver()
-    metadata.save_metadata(filename=img_id, url=url, video_path=processed_video_path, img_path=resized_img_path, title=title)
+    metadata.save_metadata(filename=img_id, url=url, video_path=video_path, img_path=resized_img_path, title=title)
 
-    probe = ffmpeg.probe(processed_video_path)
-    video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
-    width, height, duration = int(video_info['width']), int(video_info['height']), int(float(video_info['duration']))
-
-    total_size = os.path.getsize(video_path)
+    width, height, duration = get_video_info(video_path)
 
     success = await scale_img(img_path, resized_img_path, width, height)
     if not success:
@@ -179,7 +170,7 @@ async def sosalkino(url, chat_id):
         return
 
     post_info = {
-        'processed_video_path': processed_video_path,
+        'processed_video_path': video_path,
         'resized_img_path': resized_img_path,
         'title': title,
         'duration': duration,

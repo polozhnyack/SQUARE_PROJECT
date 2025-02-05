@@ -1,7 +1,6 @@
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
-import random
-from config.config import CHANNEL, emodji
+from config.config import CHANNEL
 from db.db import Database
 
 from src.modules.mediadownloader import MediaDownloader
@@ -10,8 +9,9 @@ from src.utils.MetadataSaver import MetadataSaver
 from src.utils.resizer_img import scale_img
 from src.modules.video_uploader import upload_videos
 from src.utils.emoji_generator import generate_emojis
+from src.utils.translator import translate_text
+from src.utils.videoinfo import get_video_info
 
-from googletrans import Translator as GoogleTrans
 
 from deep_translator import GoogleTranslator
 
@@ -115,9 +115,7 @@ async def porno365_main(link, chat_id):
 
     video_url, img_url = first_item.get('video'), first_item.get('img')
 
-    title = first_item.get('title')
-    tags = first_item.get('tags')
-    actros = first_item.get('actors')
+    title, tags, actros = first_item.get('title'), first_item.get('tags'), first_item.get('actors')
 
     downloader = MediaDownloader(save_directory="media/video", chat_id=chat)
 
@@ -158,36 +156,14 @@ async def porno365_main(link, chat_id):
 
     formatted_tags = ', '.join(translated_tags)
 
-
-    try:
-        title_en = GoogleTranslator(source='auto', target='en').translate(title)
-        logger.info("Translation using deep_translator was successful.")
-
-    except Exception as e:
-        logger.error(f"Error with deep_translator: {e}")
-        logger.info("Switching to googletrans...")
-
-        # Перевод через googletrans в случае ошибки
-        try:
-            google_translator = GoogleTrans()
-            title_en = await google_translator.translate(title, src='auto', dest='en').text
-            logger.info("Translation using googletrans was successful.")
-        except Exception as e:
-            logger.error(f"Error with googletrans: {e}")
-            return link
-
-    
+    title_en  = translate_text(title)
     selected_emodji_start, selected_emodji_end = generate_emojis()
 
     text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actros}__\n\n{formatted_tags}"
 
-    probe = ffmpeg.probe(video_file_path)
-    video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
-    width = int(video_info['width'])
-    height = int(video_info['height'])
-    duration = int(float(video_info['duration']))
-
     total_size = os.path.getsize(video_file_path)
+
+    width, height, duration = get_video_info(video_file_path)
 
     await scale_img(image_path=img_file_path, output_image_path=resized_img_path, width=width, height=height)
 
