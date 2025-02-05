@@ -1,4 +1,5 @@
 from config.settings import setup_logger
+from config.config import emodji as emodji_list
 
 import ffmpeg
 from deep_translator import GoogleTranslator
@@ -7,8 +8,6 @@ from googletrans import Translator as GoogleTrans
 import cv2
 import random
 import os
-
-from config.config import emodji as emodji_list
 
 logger = setup_logger()
 

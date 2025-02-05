@@ -60,7 +60,7 @@ def contains_forbidden_words(text: str) -> bool:
 import sqlite3
 import re
 
-FORBIDDEN_WORDS = ['Cp']  # Пример запрещенного слова
+FORBIDDEN_WORDS = ['Cp']
 
 def contains_forbidden_words(text: str) -> bool:
     # Преобразуем текст в нижний регистр и проверяем наличие запрещенных слов
@@ -172,7 +172,6 @@ async def forward_proposal_handler(message):
     except Exception as e:
         logger.error(f"Error while processing the message from user {message.from_user.id}: {e}")
         await message.reply("An error occurred while sending your suggestion. Please try again later.")
-
 
 
 @proposal_router.callback_query(lambda c: c.data.startswith("approve"))
