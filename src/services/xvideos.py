@@ -3,12 +3,10 @@ import ffmpeg
 
 from config.settings import setup_logger
 from src.modules.video_uploader import upload_videos
-from src.utils.resizer_img import scale_img
+from src.utils.common import scale_img
 from config.config import CHANNEL, emodji
 from src.modules.mediadownloader import MediaDownloader
 
-
-import asyncio
 import re
 import html
 import random
@@ -113,4 +111,3 @@ async def xvideos(url, chat_id):
         return True
     else: 
         return result
-

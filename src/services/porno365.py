@@ -6,12 +6,8 @@ from db.db import Database
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
-from src.utils.resizer_img import scale_img
 from src.modules.video_uploader import upload_videos
-from src.utils.emoji_generator import generate_emojis
-from src.utils.translator import translate_text
-from src.utils.videoinfo import get_video_info
-
+from src.utils.common import translator, scale_img, get_video_info, generate_emojis
 
 from deep_translator import GoogleTranslator
 
@@ -27,7 +23,6 @@ logger = setup_logger()
 
 ua = UserAgent()
 db = Database()
-
 
 headers = {'User-Agent': ua.chrome}
 
@@ -156,7 +151,7 @@ async def porno365_main(link, chat_id):
 
     formatted_tags = ', '.join(translated_tags)
 
-    title_en  = translate_text(title)
+    title_en  = translator(title)
     selected_emodji_start, selected_emodji_end = generate_emojis()
 
     text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actros}__\n\n{formatted_tags}"

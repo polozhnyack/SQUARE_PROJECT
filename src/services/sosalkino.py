@@ -1,6 +1,4 @@
-import random
 from urllib.parse import urlparse
-import os
 
 from bs4 import BeautifulSoup
 
@@ -8,11 +6,8 @@ from src.utils.find_tags import fetch_tags
 from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
-from src.utils.resizer_img import scale_img
-from src.utils.emoji_generator import generate_emojis
-from src.utils.translator import translate_text
 from src.modules.video_uploader import upload_videos
-from src.utils.videoinfo import get_video_info
+from src.utils.common import get_video_info, generate_emojis, translator, scale_img
 
 from config.config import CHANNEL
 from config.settings import setup_logger
@@ -117,7 +112,6 @@ async def parse(url, chat_id):
         logger.info(f"Video link extracted: {video_link}")
         logger.info(f"Image link extracted: {img_link}")
 
-        save_directory = 'media/video'
         video_filename = f'{filename}'
         img_filename = f'{filename}'
 
@@ -150,7 +144,7 @@ async def sosalkino(url, chat_id):
 
     selected_emodji_start, selected_emodji_end = generate_emojis()
 
-    title_en = translate_text(title)
+    title_en = translator(title)
 
     title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 

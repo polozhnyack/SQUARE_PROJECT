@@ -1,0 +1,83 @@
+from config.settings import setup_logger
+
+import ffmpeg
+from deep_translator import GoogleTranslator
+from googletrans import Translator as GoogleTrans
+
+import cv2
+import random
+import os
+
+from config.config import emodji as emodji_list
+
+logger = setup_logger()
+
+async def get_video_info(video_path):
+    probe = ffmpeg.probe(video_path)
+    video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
+    
+    width = int(video_info['width'])
+    height = int(video_info['height'])
+    duration = int(float(video_info['duration']))
+    
+    return width, height, duration
+
+async def translator(title, retries=3):
+    try:
+        return GoogleTranslator(source='auto', target='en').translate(title)
+    except Exception as e:
+        logger.error(f"Translation error with deep_translator: {e}")
+        if retries > 0:
+            return await translator(title, retries-1)
+        try:
+            google_translator = GoogleTrans()
+            return await google_translator.translate(title, src='auto', dest='en').text
+        except Exception as e:
+            logger.error(f"Error with googletrans: {e}")
+            return None
+        
+async def scale_img(image_path, output_image_path, width, height):
+    try:
+        # Разрешение 360p
+        # width, height = 640, 360
+
+        # Открытие изображения
+        img = cv2.imread(image_path)
+        if img is None:
+            raise FileNotFoundError(f"Image file not found: {image_path}")
+        
+        # Изменение размера изображения
+        resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LANCZOS4)
+        # Сохранение изображения
+        cv2.imwrite(output_image_path, resized_img)
+
+        logger.info(f"Successfully scaled image to 360p resolution: {output_image_path}")
+        return True
+    except Exception as e:
+        logger.error(f"An error occurred while scaling the image: {str(e)}")
+        return False
+    
+def generate_emojis() -> str:
+    num_emodji_start = random.randint(0, 3)
+    num_emodji_end = random.randint(0, 3)
+
+    selected_emodji_start = random.sample(emodji_list, num_emodji_start) if num_emodji_start > 0 else []
+    selected_emodji_end = []
+
+    if num_emodji_end > 0:
+        remaining_emodji = list(set(emodji_list) - set(selected_emodji_start))
+        selected_emodji_end = random.sample(remaining_emodji, min(num_emodji_end, len(remaining_emodji)))
+
+    return selected_emodji_start, selected_emodji_end
+
+async def clear_directory(directory):
+    """Удаляет все файлы в указанной директории."""
+    try:
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                logger.info(f"Deleted file: {file_path}")
+        logger.info(f"Successfully cleared directory: {directory}")
+    except Exception as e:
+        logger.error(f"Failed to clear directory {directory}: {e}")

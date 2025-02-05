@@ -14,7 +14,6 @@ checker = URLChecker()
 fetcher = SeleniumFetcher(wait_time=1)
 
 
-
 # Функция для извлечения и обработки 24 блоков
 async def get_video_sslkn(html):
 
@@ -79,9 +78,6 @@ async def autoposting():
 
     urls = [BASE_URL_P365, BASE_URL_SSLKN]
 
-    # html_365 = fetcher.fetch_html("http://9porno365.biz/")
-    # html_sslkn = fetcher.fetch_html(BASE_URL_SSLKN)
-
     html_365, html_sslkn = await asyncio.to_thread(fetch_html_parallel, urls)
 
     p365 = await p365_links(html_365)
@@ -104,18 +100,6 @@ async def autoposting():
             else:
                 pass
 
-    # print(f"Опубликованные ссылки:")
-    # for i in succes:
-    #     print(i)
-    # print("\n\nНеопубликованный ссылки:")
-    # for i in nonupl:
-    #     print(i)
     random.shuffle(content)
 
     return content
-
-                
-
-
-# if __name__ == "__main__":
-#     asyncio.run(autoposting())
