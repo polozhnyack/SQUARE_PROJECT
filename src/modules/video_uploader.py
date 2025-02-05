@@ -1,6 +1,6 @@
 from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE, API_HASH, API_ID, PHONE
 from config.settings import setup_logger
-from src.utils.cleaner import clear_directory
+from src.utils.common import clear_directory
 
 import time
 from datetime import datetime

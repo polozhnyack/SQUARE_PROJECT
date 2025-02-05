@@ -144,7 +144,7 @@ async def sosalkino(url, chat_id):
 
     selected_emodji_start, selected_emodji_end = generate_emojis()
 
-    title_en = translator(title)
+    title_en = await translator(title)
 
     title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 
@@ -156,7 +156,7 @@ async def sosalkino(url, chat_id):
     metadata = MetadataSaver()
     metadata.save_metadata(filename=img_id, url=url, video_path=video_path, img_path=resized_img_path, title=title)
 
-    width, height, duration = get_video_info(video_path)
+    width, height, duration = await get_video_info(video_path)
 
     success = await scale_img(img_path, resized_img_path, width, height)
     if not success:
