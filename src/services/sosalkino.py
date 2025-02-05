@@ -155,7 +155,7 @@ async def sosalkino(url, chat_id):
     except Exception as e:
         logger.error(f"Translation error: {e}")
 
-    title_en = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
+    title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 
     img_id = extract_slug(url=url)
     # await save_metadata(url, video_path, img_path, title)
@@ -181,7 +181,7 @@ async def sosalkino(url, chat_id):
     post_info = {
         'processed_video_path': processed_video_path,
         'resized_img_path': resized_img_path,
-        'title': title_en,
+        'title': title,
         'duration': duration,
         'width': width,
         'height': height,

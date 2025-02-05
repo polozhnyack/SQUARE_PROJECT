@@ -12,7 +12,7 @@ from telethon import TelegramClient
 logger = setup_logger()
 
 
-async def upload_videos(video_info: dict):
+async def upload_videos(video_info: dict): 
 
     client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
     await client.start(phone=PHONE)

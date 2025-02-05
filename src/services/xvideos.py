@@ -81,6 +81,7 @@ async def xvideos(url, chat_id):
     text = f"{''.join(selected_emodji_start)}**{title.upper()}**{''.join(selected_emodji_end)}\n\n{tags}"
 
     video_file, imd_file = await downloader.download_media(video_filename=title_file, img_filename=title_file, video_url=video, img_url=img)
+    await downloader.cleanup()
 
     probe = ffmpeg.probe(video_file)
     video_info = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
