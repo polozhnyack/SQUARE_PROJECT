@@ -27,7 +27,7 @@ class MetadataSaver:
         """
         return re.sub(r'[\\/*?:"<>|]', "_", title)
 
-    def save_metadata(self, filename: str, url: str, video_path: str, img_path: str, title: str) -> None:
+    def save_metadata(self, filename: str, metadata: dict) -> None:
         """
         Сохраняет метаданные видео в JSON файл.
         :param url: URL источника.
@@ -36,12 +36,6 @@ class MetadataSaver:
         :param title: Название видео.
         """
         sanitized_title = self.sanitize_filename(filename)
-        metadata = {
-            'url': url,
-            'video_path': video_path,
-            'img_path': img_path,
-            'title': title,
-        }
 
         json_file_path = os.path.join(self.base_directory, f"{sanitized_title}.json")
 
@@ -51,3 +45,21 @@ class MetadataSaver:
             logger.info(f"Metadata saved to {json_file_path}")
         except Exception as e:
             logger.error(f"Error saving metadata to JSON: {e}")
+
+    def load_metadata(self, filename: str) -> dict:
+        """
+        Загружает метаданные из JSON файла.
+        :param filename: Название файла (без расширения).
+        :return: Словарь с метаданными.
+        """
+        sanitized_filename = self.sanitize_filename(filename)
+        json_file_path = os.path.join(self.base_directory, f"{sanitized_filename}.json")
+
+        try:
+            with open(json_file_path, 'r', encoding='utf-8') as f:
+                metadata = json.load(f)
+            logger.info(f"Metadata loaded from {json_file_path}")
+            return metadata
+        except Exception as e:
+            logger.error(f"Error loading metadata from JSON: {e}")
+            return {}

@@ -81,12 +81,14 @@ async def subs_update():
 
     except Exception as e:
         logger.error(f"Error in main function: {e}")
+        await client.disconnect()
 
 async def run_subs_update():
     try:
         await client.start(PHONE)
         logger.info("Client started successfully")
         await subs_update()
+        await client.disconnect()
     except Exception as e:
         logger.error(f"Error while starting or running the client: {e}")
     finally:

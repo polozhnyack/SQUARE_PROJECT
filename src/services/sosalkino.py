@@ -154,7 +154,6 @@ async def sosalkino(url, chat_id):
     resized_img_path = f'media/video/{img_id}_resized_img.jpg'
 
     metadata = MetadataSaver()
-    metadata.save_metadata(filename=img_id, url=url, video_path=video_path, img_path=resized_img_path, title=title)
 
     width, height, duration = await get_video_info(video_path)
 
@@ -175,6 +174,8 @@ async def sosalkino(url, chat_id):
         'chat': chat_id
     }
 
+    metadata.save_metadata(filename=img_id, metadata=post_info)
+    
     result = await upload_videos(video_info=post_info)
 
     if result == True:

@@ -151,18 +151,16 @@ async def porno365_main(link, chat_id):
 
     formatted_tags = ', '.join(translated_tags)
 
-    title_en  = translator(title)
+    title_en  = await translator(title)
     selected_emodji_start, selected_emodji_end = generate_emojis()
 
     text_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actros}__\n\n{formatted_tags}"
 
     total_size = os.path.getsize(video_file_path)
 
-    width, height, duration = get_video_info(video_file_path)
+    width, height, duration = await get_video_info(video_file_path)
 
     await scale_img(image_path=img_file_path, output_image_path=resized_img_path, width=width, height=height)
-
-    metadata.save_metadata(filename=video_id, video_path=video_file_path, img_path=resized_img_path, title=text_post, url=link)
 
     post_info = {
         'processed_video_path': video_file_path,
@@ -175,6 +173,8 @@ async def porno365_main(link, chat_id):
         'channel': CHANNEL,
         'chat': chat_id
     }
+
+    metadata.save_metadata(filename=video_id, metadata=post_info)
 
     result = await upload_videos(video_info=post_info)
 

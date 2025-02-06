@@ -37,17 +37,12 @@ async def translator(title, retries=3):
         
 async def scale_img(image_path, output_image_path, width, height):
     try:
-        # Разрешение 360p
-        # width, height = 640, 360
 
-        # Открытие изображения
         img = cv2.imread(image_path)
         if img is None:
             raise FileNotFoundError(f"Image file not found: {image_path}")
         
-        # Изменение размера изображения
         resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LANCZOS4)
-        # Сохранение изображения
         cv2.imwrite(output_image_path, resized_img)
 
         logger.info(f"Successfully scaled image to 360p resolution: {output_image_path}")

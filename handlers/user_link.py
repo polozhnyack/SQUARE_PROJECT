@@ -26,7 +26,7 @@ async def handle_user_link(message: types.Message, state: FSMContext):
     for user_link in user_links:
         progress_text = (
             f"📤 *Постинг процесс...*\n\n"
-            f"🔗 *Текущая ссылка:* `{user_link}`\n"
+            f"🔗 *Текущая ссылка:* {user_link}\n"
             f"✅ *Выгружено:* {processed_links} из {total_links}\n"
         )
         
