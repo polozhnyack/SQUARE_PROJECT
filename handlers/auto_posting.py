@@ -1,6 +1,6 @@
 from aiogram import types
 from aiogram.fsm.context import FSMContext
-from src.services.porno365 import porno365_main
+from src.services.porno365 import porno365
 from src.services.sosalkino import sosalkino
 from src.utils.urlchek import URLChecker
 

@@ -87,7 +87,7 @@ def extract_movie_id(url: str, domain_keyword: str = "porno365") -> str:
         logger.error(f"Ошибка при извлечении идентификатора из URL: {e}")
         return ""
 
-async def porno365_main(link, chat_id):
+async def porno365(link, chat_id):
 
     metadata = MetadataSaver()
     video_id = extract_movie_id(link)
