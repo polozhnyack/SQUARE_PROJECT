@@ -78,7 +78,7 @@ async def auto_link(query: types.CallbackQuery, state: FSMContext):
         # Обрабатываем ссылки для сайта porno365
         elif "porno365" in user_link:
             if cheсker.check_url(user_link, filename="JSON/p365.json"):
-                result = await porno365_main(chat_id=message.chat.id, link=user_link)
+                result = await porno365(chat_id=message.chat.id, link=user_link)
 
                 if result is True:
                     cheсker.save_url(user_link, filename="JSON/p365.json")
