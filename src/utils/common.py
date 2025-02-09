@@ -9,6 +9,7 @@ import aiohttp
 import cv2
 import random
 import os
+import re
 import json
 from pathlib import Path
 from urllib.parse import urlparse
@@ -128,3 +129,15 @@ async def find_metadata(url: str):
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON from file {json_file.name}: {e}")
             return None
+        
+async def get_log_file(log_directory='logs', base_filename='Square.log'):
+    log_pattern = re.compile(rf'^{base_filename}(\.(\d+))?$')
+    log_files = os.listdir(log_directory)
+    matching_files = [f for f in log_files if log_pattern.match(f)]
+    
+    if not matching_files:
+        return None
+    
+    sorted_files = sorted(matching_files, key=lambda f: int(log_pattern.search(f).group(2) or 0), reverse=True)
+    
+    return os.path.join(log_directory, sorted_files[0])

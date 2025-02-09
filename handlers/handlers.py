@@ -1,18 +1,22 @@
 from aiogram import types
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
+from aiogram.types import FSInputFile
+import aiofiles
 
 from .state.state import waiting
 from db.ModuleControl import ModuleControl
 from src.utils.urlchek import URLChecker
 from src.modules.media_selector import selector
 from src.modules.update_subs import run_subs_update
-from templates.phrases import RECOMEND_MSG
+from templates.phrases import RECOMEND_MSG, agitation_text
 
 from Buttons.inlinebtns import create_users_keyboard, status_edit, spam_mode
 from db.db import Database
-from config.config import ADMIN  # Импортируем CHANEL_ID и CHANNEL_ID из bot.py
+from config.config import ADMIN, bot  # Импортируем CHANEL_ID и CHANNEL_ID из bot.py
 from config.settings import setup_logger
+from src.utils.common import get_log_file
+
 
 logger = setup_logger()
 
@@ -31,6 +35,18 @@ async def subsupdate_handler(message: types.Message):
     await message.answer("Начинаем сбор новых подписчиков в БД.")
     await run_subs_update(message.from_user.id)
     
+async def log_file_handler(message: types.Message):
+    await message.answer("Выгружаем последний лог-файл.")
+    latest_log_file = await get_log_file()
+    if latest_log_file:
+        try:
+            async with aiofiles.open(latest_log_file, 'rb') as log_file:
+                await bot.send_document(chat_id=message.chat.id, document=FSInputFile(f"{latest_log_file}"), caption="Вот ваш последний лог-файл:")
+        except Exception as e:
+            await message.reply(f"Произошла ошибка при отправке файла: {e}")
+    else:
+        await message.reply("Не удалось найти лог-файл.")
+
 
 async def manage_users(message: types.Message):
     if message.from_user.id == admin_id:
@@ -144,10 +160,14 @@ async def caption_text_post(message: types.Message, state: FSMContext):
         await selector(TEXT=RECOMEND_MSG)
         await message.answer("Пост рекомендаций отправлен.")
         return
-    
-    text = message.text
-    await selector(TEXT=text)
-    await state.clear()
+    elif message.text == "1":
+        await selector(TEXT=agitation_text)
+        await message.answer("Пост рекомендаций отправлен.")
+        return
+    else:
+        text = message.text
+        await selector(TEXT=text)
+        await state.clear()
 
 async def any_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Режим произвольного поста.\n\nПрямой доступ к постингу в канал. (в разработке)")

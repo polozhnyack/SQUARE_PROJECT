@@ -11,7 +11,7 @@ from handlers.auto_posting import auto_link
 def register_handlers(dp: Dispatcher):
     from handlers.handlers import (
         send_welcome, manage_users, delete_user_callback, 
-        status_posting, edit_status_module, any_post, start_link_post, status_spam, edit_status_spam, handle_caption_post, caption_text_post, subsupdate_handler
+        status_posting, edit_status_module, any_post, start_link_post, status_spam, edit_status_spam, handle_caption_post, caption_text_post, subsupdate_handler, log_file_handler
     )
     from .admin.admin_handlers import request_to_join, handle_admin_response, join_member
 
@@ -19,6 +19,7 @@ def register_handlers(dp: Dispatcher):
     router.message.register(send_welcome, Command(commands=['start', 'help']))
     router.message.register(subsupdate_handler, Command(commands=['subs']))
     router.message.register(manage_users, Command(commands=['users']))
+    router.message.register(log_file_handler, Command(commands=['logs']))
     router.callback_query.register(delete_user_callback, lambda cb: cb.data and cb.data.startswith("delete_user:"))
     router.message.register(request_to_join, Command(commands=['join']))
     router.callback_query.register(handle_admin_response, lambda cb: cb.data.startswith('approve_') or cb.data.startswith('deny_'))

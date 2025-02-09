@@ -22,30 +22,23 @@ client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.
 async def selector(TEXT):
     await client.start()
     messages_with_photos = []
-    messages_with_videos = []
 
     async for message in client.iter_messages(CHANNEL_ID, limit=None):
-        # Проверяем, содержит ли сообщение заданный текст и медиа (фото или видео)
+        # Проверяем, содержит ли сообщение заданный текст и медиа (только фото)
         if message.text and TARGET_PHRASE in message.text:
             if isinstance(message.media, MessageMediaPhoto):
                 messages_with_photos.append(message)
-            elif isinstance(message.media, MessageMediaDocument) and message.video:
-                messages_with_videos.append(message)
 
-    # Рандомно выбираем между фото и видео
-    if messages_with_photos or messages_with_videos:
-        if random.choice([True, False]):  # Случайный выбор между фото и видео
-            chosen_message = random.choice(messages_with_photos) if messages_with_photos else random.choice(messages_with_videos)
-            media_type = 'photo' if isinstance(chosen_message.media, MessageMediaPhoto) else 'video'
-        else:
-            chosen_message = random.choice(messages_with_videos) if messages_with_videos else random.choice(messages_with_photos)
-            media_type = 'video' if isinstance(chosen_message.media, MessageMediaDocument) else 'photo'
+    # Если есть фото, случайно выбираем одно и отправляем
+    if messages_with_photos:
+        chosen_message = random.choice(messages_with_photos)
+        media_type = 'photo'
 
-        # Отправка выбранного медиа файла
+        # Отправка выбранного фото
         await client.send_file(TARGET_BOT_USERNAME, chosen_message.media, caption=TEXT)
         logger.info(f"Пост с {media_type.upper()} отправлен. Текст: {TEXT}")
     else:
-        logger.info('Не удалось найти сообщения с заданным текстом и медиа.')
+        logger.info('Не удалось найти сообщения с заданным текстом и фото.')
 
     await client.disconnect()
 
