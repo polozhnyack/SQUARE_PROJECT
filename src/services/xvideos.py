@@ -27,7 +27,6 @@ async def parse(url: str):
         'img_url' : video.thumbnail_url,
         'title': video.title,
         'tags': filtered_tags,
-        'ators': video.pornstars
     }
 
     return results
