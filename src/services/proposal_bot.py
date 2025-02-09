@@ -160,7 +160,7 @@ async def forward_proposal_handler(message):
         await proposal_bot.send_message(
             chat_id=ADMIN_ID,
             text=f"New suggestion from @{message.from_user.username or 'Без имени'} (ID: {message.from_user.id})",
-            parse_mode="Markdown",
+            # parse_mode="Markdown",
             reply_markup=get_admin_buttons(
                 user_id=message.from_user.id,
                 username=message.from_user.username,

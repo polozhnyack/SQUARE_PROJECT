@@ -7,7 +7,7 @@ from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
 from src.modules.video_uploader import upload_videos
-from src.utils.common import get_video_info, generate_emojis, translator, scale_img
+from src.utils.common import get_video_info, generate_emojis, translator, scale_img, extract_segment
 
 from config.config import CHANNEL
 from config.settings import setup_logger
@@ -57,23 +57,6 @@ async def extract_video_src(html):
         logger.warning("No video or image URL found in the video block.")
         return None, None, None, None, None
 
-
-def extract_slug(url: str) -> str:
-    """
-    Извлекает последний сегмент из URL.
-    :param url: URL-адрес.
-    :return: Последний сегмент URL.
-    """
-    try:
-        # Извлекаем путь из URL
-        path = urlparse(url).path
-        # Разбиваем путь на части и возвращаем последний сегмент
-        return path.strip("/").split("/")[-1]
-    except Exception as e:
-        # Логируем ошибку, если произошла проблема
-        logger.error(f"Ошибка при извлечении сегмента из URL: {e}")
-        return ""
-
 async def parse(url, chat_id):
     logger.info("Starting parse function")
 
@@ -107,7 +90,7 @@ async def parse(url, chat_id):
             return None, None, None, None, None
 
         # Извлекаем имя файла из URL
-        filename = extract_slug(url)
+        filename = extract_segment(url)
 
         logger.info(f"Video link extracted: {video_link}")
         logger.info(f"Image link extracted: {img_link}")
@@ -148,7 +131,7 @@ async def sosalkino(url, chat_id):
 
     title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 
-    img_id = extract_slug(url=url)
+    img_id = extract_segment(url=url)
     # await save_metadata(url, video_path, img_path, title)
 
     resized_img_path = f'media/video/{img_id}_resized_img.jpg'

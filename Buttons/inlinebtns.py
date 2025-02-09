@@ -92,24 +92,25 @@ def spam_mode(text_edit, edit_status):
 def get_admin_buttons(user_id, username, message):
     try:
         logging.info(f"Creating buttons for user {user_id} with username {username}.")
-        
+
         # Создаем кнопки с эмодзи
         buttons = [
             InlineKeyboardButton(text="🚫", callback_data=f"ban_{user_id}"),
-            InlineKeyboardButton(text="🔓", callback_data=f"unban_{user_id}"),
             InlineKeyboardButton(text="✅", callback_data=f"approve_{message}_{user_id}"),
-            InlineKeyboardButton(text="❌", callback_data=f"reject_{user_id}_{message}"),
-            InlineKeyboardButton(text="👤", url=f"tg://user?id={user_id}")
+            InlineKeyboardButton(text="❌", callback_data=f"reject_{user_id}_{message}")
         ]
 
-        # Создаем клавиатуру с кнопками в одну строку
+        # Попытка добавить кнопку для перехода по user_id, но только если есть username
+        if username:
+            buttons.append(InlineKeyboardButton(text="👤", url=f"tg://user?id={user_id}"))
+
+        # Создаем клавиатуру с кнопками
         keyboard = InlineKeyboardMarkup(row_width=3, inline_keyboard=[buttons])
 
         logging.info("Buttons successfully created.")
         return keyboard
+
     except Exception as e:
         logging.error(f"Error while creating buttons: {e}")
         raise
-
-
 

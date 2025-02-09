@@ -26,11 +26,11 @@ async def handle_user_link(message: types.Message, state: FSMContext):
     for user_link in user_links:
         progress_text = (
             f"📤 *Постинг процесс...*\n\n"
-            f"🔗 *Текущая ссылка:* {user_link}\n"
+            f"🔗 *Текущая ссылка:* '{user_link}'\n"
             f"✅ *Выгружено:* {processed_links} из {total_links}\n"
         )
         
-        await progress_message.edit_text(progress_text, disable_web_page_preview=True, parse_mode="Markdown")
+        await progress_message.edit_text(progress_text, disable_web_page_preview=True)
         
         for site, (json_file, handler) in site_handlers.items():
             if site in user_link:
@@ -45,7 +45,8 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                 else:
                     await bot.send_message(
                         text=f"Видео по ссылке {user_link} уже было опубликовано. Ссылка была пропущена.",
-                        chat_id=message.chat.id
+                        chat_id=message.chat.id,
+                        disable_web_page_preview=True
                     )
                 break
         else:

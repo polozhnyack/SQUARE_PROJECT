@@ -40,7 +40,7 @@ async def upload_videos(video_info: dict):
 
     try:
         # Извлекаем данные из словаря
-        processed_video_path = video_info.get('processed_video_path')
+        processed_video_path = video_info.get('video_path')
         resized_img_path = video_info.get('resized_img_path')
         title = video_info.get('title')
         duration = video_info.get('duration')

@@ -8,6 +8,7 @@ from googletrans import Translator as GoogleTrans
 import cv2
 import random
 import os
+from urllib.parse import urlparse
 
 logger = setup_logger()
 
@@ -75,3 +76,27 @@ async def clear_directory(directory):
         logger.info(f"Successfully cleared directory: {directory}")
     except Exception as e:
         logger.error(f"Failed to clear directory {directory}: {e}")
+
+
+
+def extract_segment(url: str, domain_keyword: str = "porno365") -> str:
+    """
+    Извлекает последний сегмент из URL или идентификатор фильма,
+    если URL содержит указанное ключевое слово.
+    
+    :param url: URL-адрес.
+    :param domain_keyword: Ключевое слово для определения структуры URL.
+    :return: Извлечённый сегмент или идентификатор фильма.
+    """
+    try:
+        path = urlparse(url).path.strip("/")
+        parts = path.split("/")
+        
+        if domain_keyword in url and len(parts) > 1 and parts[-2] == "movie":
+            return parts[-1]
+        
+        return parts[-1] if parts else ""
+    except Exception as e:
+        logger.error(f"Ошибка при извлечении сегмента из URL: {e}")
+        return ""
+

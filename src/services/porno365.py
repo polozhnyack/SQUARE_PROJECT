@@ -7,7 +7,7 @@ from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
 from src.modules.video_uploader import upload_videos
-from src.utils.common import translator, scale_img, get_video_info, generate_emojis
+from src.utils.common import translator, scale_img, get_video_info, generate_emojis, extract_segment
 
 from deep_translator import GoogleTranslator
 
@@ -15,8 +15,6 @@ from config.settings import setup_logger
 
 import re
 import os
-from tqdm import tqdm
-import ffmpeg
 from urllib.parse import urlparse
 
 logger = setup_logger()
@@ -40,6 +38,7 @@ async def parse(html):
     title = title_tag.get_text(strip=True) if title_tag else None
 
     actors_links = soup.find_all('a', class_='model_link')
+    
     translator = GoogleTranslator(source='ru', target='en')
     actors = ' '.join([f'#{translator.translate(x.get_text(strip=True)).replace(" ", "_")}' for x in actors_links]) if actors_links else None
 
@@ -63,34 +62,10 @@ async def parse(html):
         'actors': actors
     }]
 
-    
-def extract_movie_id(url: str, domain_keyword: str = "porno365") -> str:
-    """
-    Извлекает идентификатор фильма из ссылки, если она содержит заданное ключевое слово.
-    :param url: URL-адрес.
-    :param domain_keyword: Ключевое слово, указывающее на нужный домен (например, "porno365").
-    :return: Идентификатор фильма или пустая строка, если ключевое слово не найдено.
-    """
-    try:
-        # Проверяем, содержит ли URL ключевое слово
-        if domain_keyword in url:
-            # Извлекаем путь из URL
-            path = urlparse(url).path
-            # Разбиваем путь на части
-            parts = path.strip("/").split("/")
-            # Если путь соответствует ожидаемой структуре, возвращаем последний элемент
-            if len(parts) > 1 and parts[-2] == "movie":  # Проверяем, что перед идентификатором есть "movie"
-                return parts[-1]
-        return ""  # Возвращаем пустую строку, если ключевое слово не найдено или структура пути неверна
-    except Exception as e:
-        # Логируем ошибку, если произошла проблема
-        logger.error(f"Ошибка при извлечении идентификатора из URL: {e}")
-        return ""
-
 async def porno365(link, chat_id):
 
     metadata = MetadataSaver()
-    video_id = extract_movie_id(link)
+    video_id = extract_segment(link)
     chat = chat_id
     url = link
     fetcher = SeleniumFetcher(wait_time=2)
@@ -163,15 +138,19 @@ async def porno365(link, chat_id):
     await scale_img(image_path=img_file_path, output_image_path=resized_img_path, width=width, height=height)
 
     post_info = {
-        'processed_video_path': video_file_path,
+        'video_path': video_file_path,
         'resized_img_path': resized_img_path,
         'title': text_post,
         'duration': duration,
         'width': width,
         'height': height,
+        'total_size': total_size,
         'url': url,
+        'video_url': video_url,
+        'image_url': img_url,
         'channel': CHANNEL,
         'chat': chat_id
+        
     }
 
     metadata.save_metadata(filename=video_id, metadata=post_info)
