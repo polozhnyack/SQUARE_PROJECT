@@ -72,7 +72,7 @@ async def xvideos(url, chat_id):
         return
 
     post_info = {
-        'processed_video_path': video_file,
+        'video_path': video_file,
         'resized_img_path': resized_img_path,
         'title': text,
         'duration': duration,

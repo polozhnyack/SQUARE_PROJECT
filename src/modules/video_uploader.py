@@ -72,8 +72,6 @@ async def upload_videos(video_info: dict):
                         parse_mode='Markdown',
                         disable_web_page_preview=True
                         )
-        # Очищаем директорию и отключаем клиент
-        await clear_directory('media/video')
         await client.disconnect()
         return url  # Возвращаем URL в случае ошибки
     

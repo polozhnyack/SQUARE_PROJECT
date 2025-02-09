@@ -146,7 +146,7 @@ async def sosalkino(url, chat_id):
         return
 
     post_info = {
-        'processed_video_path': video_path,
+        'video_path': video_path,
         'resized_img_path': resized_img_path,
         'title': title,
         'duration': duration,

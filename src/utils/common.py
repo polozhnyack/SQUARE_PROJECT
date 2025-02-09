@@ -128,5 +128,3 @@ async def find_metadata(url: str):
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON from file {json_file.name}: {e}")
             return None
-
-    raise ValueError(f"URL {url} not found in any JSON file in the directory.")

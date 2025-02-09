@@ -27,12 +27,13 @@ async def handle_user_link(message: types.Message, state: FSMContext):
 
     for user_link in user_links:
         progress_text = (
-            f"📤 *Постинг процесс...*\n\n"
-            f"🔗 *Текущая ссылка:* {user_link}\n"
-            f"✅ *Выгружено:* {processed_links} из {total_links}\n"
+            f"📤 <b>Постинг процесс...</b>\n\n"
+            f"🔗 <b>Текущая ссылка:</b> {user_link}\n"
+            f"✅ <b>Выгружено:</b> {processed_links} из {total_links}\n"
         )
-        
-        await progress_message.edit_text(progress_text, disable_web_page_preview=True)
+
+        await progress_message.edit_text(progress_text, disable_web_page_preview=True, parse_mode='HTML')
+
         
         for site, (json_file, handler) in site_handlers.items():
             if site in user_link:
@@ -43,7 +44,7 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                         processed_links += 1
                     else:
                         success = await handler(user_link, chat_id=message.chat.id)
-                        if success:
+                        if success is True:
                             cheсker.save_url(user_link, filename=json_file)
                             processed_links += 1
                         else:
