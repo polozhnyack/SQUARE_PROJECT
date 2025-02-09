@@ -4,10 +4,13 @@ from config.config import emodji as emodji_list
 import ffmpeg
 from deep_translator import GoogleTranslator
 from googletrans import Translator as GoogleTrans
+import aiohttp
 
 import cv2
 import random
 import os
+import json
+from pathlib import Path
 from urllib.parse import urlparse
 
 logger = setup_logger()
@@ -22,7 +25,7 @@ async def get_video_info(video_path):
     
     return width, height, duration
 
-async def translator(title, retries=3):
+async def translator(title, retries=3) -> str:
     try:
         return GoogleTranslator(source='auto', target='en').translate(title)
     except Exception as e:
@@ -34,7 +37,16 @@ async def translator(title, retries=3):
             return await google_translator.translate(title, src='auto', dest='en').text
         except Exception as e:
             logger.error(f"Error with googletrans: {e}")
-            return None
+            if retries > 0:
+                return await translator(title, retries-1)
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"https://api.mymemory.translated.net/get?q={title}&langpair=auto|en") as resp:
+                        data = await resp.json()
+                        return data.get("responseData", {}).get("translatedText", None)
+            except Exception as e:
+                logger.error(f"Error with MyMemory API: {e}")
+                return "I'm shocked at what that bitch is doing."
         
 async def scale_img(image_path, output_image_path, width, height):
     try:
@@ -78,7 +90,6 @@ async def clear_directory(directory):
         logger.error(f"Failed to clear directory {directory}: {e}")
 
 
-
 def extract_segment(url: str, domain_keyword: str = "porno365") -> str:
     """
     Извлекает последний сегмент из URL или идентификатор фильма,
@@ -100,3 +111,22 @@ def extract_segment(url: str, domain_keyword: str = "porno365") -> str:
         logger.error(f"Ошибка при извлечении сегмента из URL: {e}")
         return ""
 
+async def find_metadata(url: str):
+    directory = "media/video"
+    directory_path = Path(directory)
+
+    if not directory_path.exists() or not directory_path.is_dir():
+        raise FileNotFoundError(f"Directory {directory} not found")
+
+    for json_file in directory_path.glob("*.json"):
+        try:
+            with open(json_file, 'r') as file:
+                video_info = json.load(file)
+
+            if video_info.get('url') == url:
+                return video_info
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding JSON from file {json_file.name}: {e}")
+            return None
+
+    raise ValueError(f"URL {url} not found in any JSON file in the directory.")

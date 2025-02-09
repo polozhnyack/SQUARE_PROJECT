@@ -1,18 +1,19 @@
 from xvideos_api import Client
-import ffmpeg
 
 from config.settings import setup_logger
 from src.modules.video_uploader import upload_videos
 from src.utils.common import scale_img, generate_emojis, get_video_info
-from config.config import CHANNEL, emodji
+from config.config import CHANNEL
 from src.modules.mediadownloader import MediaDownloader
+from src.utils.MetadataSaver import MetadataSaver
 
 import re
 import html
-import random
+import os
 
 logger = setup_logger()
 clientX = Client()
+metadata = MetadataSaver()
 
 async def parse(url: str):
 
@@ -62,6 +63,7 @@ async def xvideos(url, chat_id):
     await downloader.cleanup()
 
     width, height, duration = await get_video_info(video_file)
+    total_size = os.path.getsize(video_file)
 
     resized_img_path = f'media/video/{title_file}_resized_img.jpg'
     success = await scale_img(imd_file, resized_img_path, width, height)
@@ -78,8 +80,11 @@ async def xvideos(url, chat_id):
         'height': height,
         'url': url,
         'channel': CHANNEL,
+        'total_size': total_size,
         'chat': chat_id
     }
+
+    metadata.save_metadata(filename=title_file, metadata=post_info)
 
     result = await upload_videos(video_info=post_info)
 

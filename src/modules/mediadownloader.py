@@ -32,6 +32,10 @@ class MediaDownloader:
 
     async def progress_callback(self, current, total, description):
         """Callback to update the progress and send a message in Telegram."""
+
+        if "image" in description.lower():
+            return  # Просто выходим из функции для изображений
+        
         if self.progress_message is None:  # Создаем сообщение только один раз
             self.progress_message = await self.bot.send_message(self.chat_id, f"Начинаем загрузку...")
 
