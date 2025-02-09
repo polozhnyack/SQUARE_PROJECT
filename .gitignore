@@ -1,4 +1,3 @@
-update_subs.py
 
 /venv
 config/.env
@@ -9,8 +8,6 @@ userbot.session
 users.db
 
 .DS_Store
-
-update_subs.py
 
 /JSON/*
 !/JSON/

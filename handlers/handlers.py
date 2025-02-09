@@ -6,13 +6,11 @@ from .state.state import waiting
 from db.ModuleControl import ModuleControl
 from src.utils.urlchek import URLChecker
 from src.modules.media_selector import selector
+from src.modules.update_subs import run_subs_update
 from templates.phrases import RECOMEND_MSG
-
-
 
 from Buttons.inlinebtns import create_users_keyboard, status_edit, spam_mode
 from db.db import Database
-from bot import bot
 from config.config import ADMIN  # Импортируем CHANEL_ID и CHANNEL_ID из bot.py
 from config.settings import setup_logger
 
@@ -24,10 +22,15 @@ admin_id = ADMIN
 cheсker = URLChecker()
 
 async def send_welcome(message: types.Message):
-    await message.answer("Привет! Я бот, который пересылает сообщения в канал.")
+    user = db.get_user(message.from_user.id)
+    if not user:
+        return
+    await message.answer("Привет!\n\n Доступные команды:\n/posting - постниг в канал\n/subs - обновление подписчиков в БД\n/spam - Спам в анон чат\n/users - удалить админа\n/join - для новых пользователей")
 
-async def logs_handler(message: types.Message):
-    pass
+async def subsupdate_handler(message: types.Message):
+    await message.answer("Начинаем сбор новых подписчиков в БД.")
+    await run_subs_update(message.from_user.id)
+    
 
 async def manage_users(message: types.Message):
     if message.from_user.id == admin_id:

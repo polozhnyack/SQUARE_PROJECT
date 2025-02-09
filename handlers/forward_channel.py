@@ -80,7 +80,6 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
         return
     
     else:
-        # translated = GoogleTranslator(source='auto', target='en').translate(message.md_text)
         if message.content_type == 'text':
             await bot.send_message(
                 CHANNEL_ID,
@@ -90,21 +89,15 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
             )
 
         elif message.content_type == 'photo':
-            # translate = GoogleTranslator(source='auto', target='en').translate(message.md_text)
             caption = f"{message.md_text}\n\n{water_mark}"
-
-            # button = create_url_button() if message.from_user.id != 5527908685 else None
             await bot.send_photo(
                 CHANNEL_ID,
                 message.photo[-1].file_id,
                 caption=caption,
                 parse_mode=PARSE_MODE,
-                # reply_markup=button
             )
 
         elif message.content_type == 'video':
-            
-            # caption = GoogleTranslator(source='auto', target='en').translate(message.md_text)
             caption = f"{message.md_text}\n\n{water_mark}"
             logger.info(f"Title Aiogram: {message.caption}")
             try:
@@ -114,20 +107,16 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
                     message.video.file_id,
                     caption=caption,
                     parse_mode=PARSE_MODE,  
-                    # reply_markup=create_url_button()
                 )
             except exceptions.TelegramAPIError as e:
                 await bot.send_message(message.from_user.id, f"TelegramAPIError  error: {e}")
 
         elif message.content_type == 'animation':
-            # caption = GoogleTranslator(source='auto', target='en').translate(message.md_text)
-
             await bot.send_animation(
                 CHANNEL_ID,
                 message.animation.file_id,
                 caption=caption,
                 parse_mode=parse_mode,
-                # reply_markup=create_url_button()
             )
         else:
             await message.answer("Этот тип сообщений не поддерживается.")

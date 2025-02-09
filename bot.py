@@ -18,8 +18,6 @@ bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
-admin_id = ADMIN
-
 proposal_dp, proposal_bot = get_proposal_bot()
 
 if not os.path.exists(ADMIN_SESSION_FILE):
@@ -43,8 +41,8 @@ async def on_startup():
 
         # await userbot_manager.get_client().start()
         
-        admin_user = await bot.get_chat(admin_id)
-        db.add_user(admin_id, admin_user.first_name, admin_user.last_name or "")
+        admin_user = await bot.get_chat(ADMIN)
+        db.add_user(ADMIN, admin_user.first_name, admin_user.last_name or "")
 
         mc.update_module_status(function_name='VideoScheduler', is_enabled=False)
 
