@@ -29,7 +29,7 @@ async def send_welcome(message: types.Message):
     user = db.get_user(message.from_user.id)
     if not user:
         return
-    await message.answer("Привет!\n\n Доступные команды:\n/posting - постниг в канал\n/subs - обновление подписчиков в БД\n/spam - Спам в анон чат\n/users - удалить админа\n/join - для новых пользователей")
+    await message.answer("Привет!\n\n Доступные команды:\n/posting - постниг в канал\n/subs - Обновление подписчиков в БД\n/spam - Спам в анон чат\n/users - Удалить админа\n/join - Для новых пользователей\n/saver -  Проверка наличия ссылки в базе.")
 
 async def subsupdate_handler(message: types.Message):
     await message.answer("Начинаем сбор новых подписчиков в БД.")
