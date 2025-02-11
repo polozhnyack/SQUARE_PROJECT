@@ -57,3 +57,12 @@ class URLChecker:
             self.save_data(filename)
             return True
         return False
+    
+    def remove_url(self, url: str, filename: str) -> bool:
+        """Удаляет URL из списка и обновляет файл."""
+        self._load_data(filename)
+        if url in self.data:
+            self.data.remove(url)
+            self.save_data(filename)
+            return True
+        return False

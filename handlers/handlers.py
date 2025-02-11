@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 import aiofiles
 
+from config.sites import SITE_HANDLERS as site_handlers
 from .state.state import waiting
 from db.ModuleControl import ModuleControl
 from src.utils.urlchek import URLChecker
@@ -11,11 +12,12 @@ from src.modules.media_selector import selector
 from src.modules.update_subs import run_subs_update
 from templates.phrases import RECOMEND_MSG, agitation_text
 
-from Buttons.inlinebtns import create_users_keyboard, status_edit, spam_mode
+from Buttons.inlinebtns import create_users_keyboard, status_edit, spam_mode, url_saver
 from db.db import Database
 from config.config import ADMIN, bot  # Импортируем CHANEL_ID и CHANNEL_ID из bot.py
 from config.settings import setup_logger
 from src.utils.common import get_log_file
+from src.utils.urlchek import URLChecker
 
 
 logger = setup_logger()
@@ -24,6 +26,84 @@ db = Database()
 mc = ModuleControl()
 admin_id = ADMIN
 cheсker = URLChecker()
+
+async def save_link_handle(message: types.Message, state: FSMContext):
+    user = db.get_user(message.from_user.id)
+    if not user:
+        return
+    info = await message.answer("🔗 Пожалуйста, вставьте ссылку, которую нужно сохранить.")
+    await state.update_data(message=info.message_id, chat_id=info.chat.id) 
+    await state.set_state(waiting.save_link)
+
+async def save_link_answer(message: types.Message, state: FSMContext):
+    link = message.text
+    cheсker = URLChecker()
+
+    message_data = await state.get_data()
+    chat_id = message_data.get('chat_id')
+    message_id = message_data.get('message')
+
+    await bot.delete_message(chat_id=chat_id, message_id=message_id)
+
+    for site, (json_file, handler) in site_handlers.items():
+        if site in link:
+            if cheсker.check_url(link, filename=json_file):
+                message = await message.answer(
+                    text=f"❎ Ссылка:\n\n{link}\n\n не найдена в базе опубликованных.\n\nВыберите действие:",
+                    parse_mode="HTML",
+                    reply_markup= url_saver(state=False, url=link),
+                    disable_web_page_preview=True
+                )
+            else:
+                message = await message.answer(
+                    text=f"✅ Ссылка:\n\n{link}\n\nНайдена в базе опубликованных. Выберите действие",
+                    parse_mode="HTML",
+                    reply_markup= url_saver(state=True, url=link),
+                    disable_web_page_preview=True
+                )
+            await state.update_data(link=link, json_file=json_file)  
+        else:
+            await message.answer("Ссылка не зарегистрирована. Или не является сслыкой")
+            await state.clear()
+            return
+
+    await state.set_state(waiting.action_link)
+
+async def action_with_link(query: CallbackQuery, state: FSMContext, message: types.Message,):
+    data = query.data
+
+    try:
+        user_data = await state.get_data()
+        link = user_data.get('link')
+        json_file = user_data.get('json_file')
+
+        if not link or not json_file:  # Проверяем, что все нужные данные присутствуют
+            await query.answer("Ошибка: недостающие данные.", show_alert=True)
+            return
+
+        # Обработка различных действий с ссылкой
+        if data.startswith("remove_link"):
+            # Удаление ссылки
+            cheсker.remove_url(url=link, filename=json_file)
+            await query.answer("Ссылка была удалена.", show_alert=False)
+        elif data.startswith("save_link"):
+            # Сохранение ссылки
+            cheсker.save_url(url=link, filename=json_file)
+            await query.answer("Ссылка была сохранена.", show_alert=False)
+        elif data.startswith("back_from_saver"):
+            await query.message.delete()
+        else:
+            await query.answer("Выход из функции", show_alert=False)
+        await query.message.delete()
+
+    except Exception as e:
+        # Логирование ошибки
+        logger.error(f"Ошибка при обработке callback: {e}")
+        await query.answer("Произошла ошибка. Попробуйте снова.", show_alert=False)
+
+    finally:
+        # Очистка состояния
+        await state.clear()
 
 async def send_welcome(message: types.Message):
     user = db.get_user(message.from_user.id)
@@ -46,7 +126,6 @@ async def log_file_handler(message: types.Message):
             await message.reply(f"Произошла ошибка при отправке файла: {e}")
     else:
         await message.reply("Не удалось найти лог-файл.")
-
 
 async def manage_users(message: types.Message):
     if message.from_user.id == admin_id:
@@ -96,7 +175,6 @@ async def status_spam(message: types.Message):
         edit_status = True
     await message.answer(f"Статус рассылки: {status}", reply_markup=spam_mode(text_edit, edit_status))
     
-
 async def edit_status_spam(query: CallbackQuery):
     # Извлекаем новый статус из callback_data
     new_status = query.data.split('_')[2] == 'True'
@@ -148,7 +226,7 @@ async def edit_status_module(query: CallbackQuery):
 
 async def start_link_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Пожалуйста, отправьте ссылку на видео.")
-    await state.set_state(waiting.waiting_video_link_sosalkino)
+    await state.set_state(waiting.waiting_video_link)
 
 async def handle_caption_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Введите текст поста.\n\nБот подставит картинку в автоматическом режиме.")

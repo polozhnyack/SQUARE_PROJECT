@@ -31,7 +31,6 @@ def create_users_keyboard():
 
     return inline_kb
 
-
 def admin_confirmation_keyboard(user_id):
     # Создаем кнопки
     add_button = InlineKeyboardButton(text="Добавить", callback_data=f"approve_{user_id}")
@@ -114,3 +113,17 @@ def get_admin_buttons(user_id, username, message):
         logging.error(f"Error while creating buttons: {e}")
         raise
 
+def url_saver(state: bool, url: str) -> InlineKeyboardMarkup:
+    """Создаёт клавиатуру с исправленным callback_data"""
+    if state:
+        buttons = [
+            [InlineKeyboardButton(text="🗑️ Удалить", callback_data=f"remove_link")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data="back_from_saver")],
+        ]
+    else:
+        buttons = [
+            [InlineKeyboardButton(text="💾 Сохранить", callback_data=f"save_link")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data="back_from_saver")],
+        ]
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
