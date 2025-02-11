@@ -11,6 +11,7 @@ import random
 import os
 import re
 import json
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -25,6 +26,18 @@ async def get_video_info(video_path):
     duration = int(float(video_info['duration']))
     
     return width, height, duration
+
+async def check_duration(time_str: str) -> bool:
+    reference_time = timedelta(minutes=8)
+    
+    parts = list(map(int, time_str.split(':')))
+    
+    if len(parts) == 3:  # ЧЧ:ММ:СС
+        time_value = timedelta(hours=parts[0], minutes=parts[1], seconds=parts[2])
+    else:  # ММ:СС
+        time_value = timedelta(minutes=parts[0], seconds=parts[1])
+    
+    return time_value > reference_time
 
 async def translator(title, retries=3) -> str:
     try:

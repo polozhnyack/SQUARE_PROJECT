@@ -7,14 +7,14 @@ from src.modules.mediadownloader import MediaDownloader
 from src.modules.fetcher import SeleniumFetcher
 from src.utils.MetadataSaver import MetadataSaver
 from src.modules.video_uploader import upload_videos
-from src.utils.common import get_video_info, generate_emojis, translator, scale_img, extract_segment
+from src.utils.common import get_video_info, generate_emojis, translator, scale_img, extract_segment, check_duration
 
-from config.config import CHANNEL
+from config.config import CHANNEL, bot
 from config.settings import setup_logger
 
 logger = setup_logger()
 
-async def extract_video_src(html):
+async def extract_video_src(html, url, chat_id):
     logger.info("Extracting video source from HTML content")
 
     soup = BeautifulSoup(html, 'html.parser')
@@ -50,9 +50,24 @@ async def extract_video_src(html):
 
     # Проверка наличия видео и изображения
     if video_src and img_src:
-        logger.info(f"Video URL found: {video_src}")
-        logger.info(f"Image URL found: {img_src}")
-        return video_src, img_src, title, tags, actors
+        video_duration = await check_duration(video_block.find('em', class_='fp-duration').text)
+        if not video_duration:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    f"⚠️ <b>Видео не соответствует требованиям!</b>\n\n"
+                    f"🔗 {url}\n\n"
+                    f"⏳ Минимальная продолжительность: <b>8:00</b>\n"
+                    f"❌ Видео короче указанного времени."
+                ),
+                parse_mode="HTML",
+                disable_web_page_preview=True
+            )
+            return None, None, None, None, None
+        else:
+            logger.info(f"Video URL found: {video_src}")
+            logger.info(f"Image URL found: {img_src}")
+            return video_src, img_src, title, tags, actors
     else:
         logger.warning("No video or image URL found in the video block.")
         return None, None, None, None, None
@@ -81,7 +96,7 @@ async def parse(url, chat_id):
 
         # Извлекаем ссылки на видео, изображение и описание
         try:
-            video_link, img_link, title, tags, actors = await extract_video_src(html_content)
+            video_link, img_link, title, tags, actors = await extract_video_src(html_content, url, chat_id)
             if not video_link or not img_link:
                 logger.warning("No video or image link found in HTML content. Skipping download.")
                 return None, None, None, None, None
@@ -124,6 +139,8 @@ async def sosalkino(url, chat_id):
 
     chat = chat_id
     video_path, img_path, title, tags, actors = await parse(url, chat_id=chat)
+    if all(x is None for x in (video_path, img_path, title, tags, actors)):
+        return url
 
     selected_emodji_start, selected_emodji_end = generate_emojis()
 
