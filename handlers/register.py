@@ -7,12 +7,12 @@ from .state.state import waiting
 from handlers.forward_channel import forward_to_channel
 from handlers.user_link import handle_user_link
 from handlers.auto_posting import auto_link
+from handlers.cheker_link_handler import save_link_handle, save_link_answer, action_with_link
 
 def register_handlers(dp: Dispatcher):
     from handlers.handlers import (
         send_welcome, manage_users, delete_user_callback, 
-        status_posting, edit_status_module, any_post, start_link_post, status_spam, edit_status_spam, handle_caption_post, caption_text_post, subsupdate_handler, log_file_handler,
-        save_link_handle, save_link_answer, action_with_link
+        status_posting, edit_status_module, any_post, start_link_post, status_spam, edit_status_spam, handle_caption_post, caption_text_post, subsupdate_handler, log_file_handler
     )
     from .admin.admin_handlers import request_to_join, handle_admin_response, join_member
 
