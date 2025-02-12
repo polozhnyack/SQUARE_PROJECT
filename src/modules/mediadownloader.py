@@ -106,9 +106,6 @@ class MediaDownloader:
                                     )
                 return None
 
-
-    
-
     async def download_video(self, session, video_url, video_filename):
         """Download video from the given URL asynchronously."""
         video_filename = self._sanitize_filename(video_filename, 'mp4')
