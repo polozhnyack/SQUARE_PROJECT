@@ -154,3 +154,11 @@ async def get_log_file(log_directory='logs', base_filename='Square.log'):
     sorted_files = sorted(matching_files, key=lambda f: int(log_pattern.search(f).group(2) or 0), reverse=True)
     
     return os.path.join(log_directory, sorted_files[0])
+
+def to_fraktur(text):
+    fraktur_map = str.maketrans(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+        "𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝕌𝕍𝕲𝕏𝕐𝕫"
+        "𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟"
+    )
+    return text.translate(fraktur_map)

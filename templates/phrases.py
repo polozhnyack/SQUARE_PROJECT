@@ -1,5 +1,6 @@
 import random
 from config.config import LUSTBOT_LINK
+from src.utils.common import to_fraktur
 
 RECOMEND_MSG_1 = """
 💋 Sweeties, share this channel with your friends and acquaintances 🤗💖 so they can also improve their mood and watch new content every day 😘🔞
@@ -55,7 +56,7 @@ RECOMEND_TEXT = [
 
 link = "https://t.me/+2u9IqLu6Gb43Njli"
 
-texts_with_link = [text + f"\n\n👇👇👇\n\n{link}\n{link}\n{link}" for text in RECOMEND_TEXT]
+texts_with_link = [f"__**{text.upper()}**__" + f"\n\n__**Forward this post or copy the link from the bio**__".upper() for text in RECOMEND_TEXT]
 
 RECOMEND_MSG = random.choice(texts_with_link)
 

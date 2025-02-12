@@ -1,5 +1,3 @@
-from urllib.parse import urlparse
-
 from bs4 import BeautifulSoup
 
 from src.utils.find_tags import fetch_tags
@@ -47,6 +45,10 @@ async def extract_video_src(html, url, chat_id):
     # Извлечение названия видео
     title_tag = soup.find('div', class_='title-video')
     title = title_tag.get_text(strip=True) if title_tag else "Untitled Video"
+    title_en = await translator(title)
+    selected_emodji_start, selected_emodji_end = generate_emojis()
+
+    title_post = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
 
     # Проверка наличия видео и изображения
     if video_src and img_src:
@@ -63,22 +65,22 @@ async def extract_video_src(html, url, chat_id):
                 parse_mode="HTML",
                 disable_web_page_preview=True
             )
-            return None, None, None, None, None
+            return None, None, None
         else:
             logger.info(f"Video URL found: {video_src}")
             logger.info(f"Image URL found: {img_src}")
-            return video_src, img_src, title, tags, actors
+            return video_src, img_src, title_post
     else:
         logger.warning("No video or image URL found in the video block.")
-        return None, None, None, None, None
+        return None, None, None
 
-async def parse(url, chat_id):
+async def parse(url: str, chat_id: int):
     logger.info("Starting parse function")
 
     # Проверяем, что URL передан
     if not url:
         logger.warning("No video URL provided.")
-        return None, None, None, None, None
+        return None, None, None
 
     logger.info(f"Video URL: {url}")
 
@@ -90,19 +92,19 @@ async def parse(url, chat_id):
         # Проверяем, был ли успешно получен HTML-контент
         if not html_content:
             logger.error("Failed to fetch HTML content. Skipping extraction and download.")
-            return None, None, None, None, None
+            return None, None, None
 
         logger.info("HTML content fetched successfully")
 
         # Извлекаем ссылки на видео, изображение и описание
         try:
-            video_link, img_link, title, tags, actors = await extract_video_src(html_content, url, chat_id)
+            video_link, img_link, title = await extract_video_src(html_content, url, chat_id)
             if not video_link or not img_link:
                 logger.warning("No video or image link found in HTML content. Skipping download.")
-                return None, None, None, None, None
+                return None, None, None
         except Exception as e:
             logger.error(f"Error extracting video link: {e}")
-            return None, None, None, None, None
+            return None, None, None
 
         # Извлекаем имя файла из URL
         filename = extract_segment(url)
@@ -122,32 +124,26 @@ async def parse(url, chat_id):
         if not video_file_path:
             logger.error("Video download failed.")
             await downloader.cleanup()
-            return None, None, None, None, None
+            return None, None, None
 
         logger.info(f"Video downloaded successfully: {video_file_path}")
         await downloader.cleanup()
 
         # Возвращаем результаты
-        return video_file_path, img_file_path, title, tags, actors
+        return video_file_path, img_file_path, title
 
     except Exception as e:
         logger.error(f"Unexpected error occurred: {e}")
-        return None, None, None, None, None
+        return None, None, None
 
 
 async def sosalkino(url, chat_id):
 
     chat = chat_id
-    video_path, img_path, title, tags, actors = await parse(url, chat_id=chat)
-    if all(x is None for x in (video_path, img_path, title, tags, actors)):
+    video_path, img_path, title = await parse(url, chat_id=chat)
+    if all(x is None for x in (video_path, img_path, title)):
         return url
-
-    selected_emodji_start, selected_emodji_end = generate_emojis()
-
-    title_en = await translator(title)
-
-    title = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{tags}"
-
+    
     img_id = extract_segment(url=url)
     # await save_metadata(url, video_path, img_path, title)
 
