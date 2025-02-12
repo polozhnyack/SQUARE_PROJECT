@@ -21,7 +21,6 @@ class MediaDownloader:
             os.makedirs(self.save_directory)
             logger.info(f"Directory created: {self.save_directory}")
         
-        # Инициализация переменных для отслеживания прогресса
         self.last_update_time = 0
         self.progress_message = None
 
@@ -34,14 +33,14 @@ class MediaDownloader:
         """Callback to update the progress and send a message in Telegram."""
 
         if "image" in description.lower():
-            return  # Просто выходим из функции для изображений
+            return  
         
-        if self.progress_message is None:  # Создаем сообщение только один раз
+        if self.progress_message is None:  
             self.progress_message = await self.bot.send_message(self.chat_id, f"Начинаем загрузку...")
 
         now = time.time()
-        if now - self.last_update_time > DELAY_EDIT_MESSAGE:  # Обновляем сообщение раз в DELAY_EDIT_MESSAGE секунд
-            percent = (current / total) * 100  # Рассчитываем проценты
+        if now - self.last_update_time > DELAY_EDIT_MESSAGE:  
+            percent = (current / total) * 100  
             formatted_time = datetime.now().strftime("%H:%M")
 
             progress_text = (
@@ -51,10 +50,9 @@ class MediaDownloader:
             await self.bot.edit_message_text(progress_text, chat_id=self.chat_id, message_id=self.progress_message.message_id)
             self.last_update_time = now
 
-        # Когда загрузка завершена
-        if current >= total:  # Проверяем, завершена ли загрузка
+        if current >= total:
             await self.bot.delete_message(chat_id=self.chat_id, message_id=self.progress_message.message_id)
-            self.progress_message = None  # Обнуляем ссылку на сообщение, чтобы не обновлять его больше
+            self.progress_message = None
 
     async def download_file(self, session, url, file_path, description, retries=10):
         try:
@@ -88,7 +86,7 @@ class MediaDownloader:
                             file.write(chunk)
                             progress_bar.update(len(chunk))
                             
-                            if "img" not in description.lower():  # Отключаем прогресс для изображений
+                            if "img" not in description.lower():
                                 await self.progress_callback(progress_bar.n, total_size, description)
                     
                     logger.info(f"{description} downloaded successfully and saved to {file_path}")
@@ -129,7 +127,6 @@ class MediaDownloader:
         """Download both video and image asynchronously."""
         logger.info(f"Starting media download: video={video_url}, image={img_url}")
         async with aiohttp.ClientSession() as session:
-            # Параллельно загружаем видео и изображение
             video_file_path, img_file_path = await asyncio.gather(
                 self.download_video(session, video_url, video_filename),
                 self.download_image(session, img_url, img_filename)
@@ -137,7 +134,6 @@ class MediaDownloader:
         return video_file_path, img_file_path
 
     async def cleanup(self):
-        """Удаление сообщения прогресса после завершения загрузки."""
         if self.progress_message:
             await self.bot.delete_message(self.chat_id, message_id=self.progress_message.message_id)
 

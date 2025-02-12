@@ -5,7 +5,6 @@ from aiogram import Bot
 from config.settings import setup_logger
 from config.config import API_ID, API_HASH, PHONE, CHANNEL_ID, TOKEN, ADMIN, ADMIN_SESSION_FILE
 
-# Замените следующими значениями ваш API ID и API Hash
 api_id = API_ID
 api_hash = API_HASH
 
@@ -19,7 +18,7 @@ def log_subscriber(user_id, username, full_name, first_name, last_name, is_bot, 
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
 
-    excluded_user_ids = {953420910, 5527908685, 5362721976}  # Пример ID, которые нужно игнорировать
+    excluded_user_ids = {953420910, 5527908685, 5362721976} 
 
     if user_id in excluded_user_ids:
         logger.info(f"Пользователь с ID {user_id} находится в списке исключений. Пропускаем.")
@@ -38,23 +37,21 @@ def log_subscriber(user_id, username, full_name, first_name, last_name, is_bot, 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (user_id, username, full_name, first_name, last_name, is_bot, phone_number, bio, chat_id))
             conn.commit()
-            return True  # Возвращаем True, если пользователь был добавлен
+            return True
         except sqlite3.Error as e:
             logger.error(f"SQLite error: {e}")
-            return False  # Возвращаем False, если произошла ошибка
-    return False  # Возвращаем False, если пользователь уже существует
+            return False
+    return False
 
 async def subs_update(admin_id):
     channel = CHANNEL_ID
     try:
         logger.info(f"subs_update запущена.")
-        # Получаем участников канала
         members_telethon_list = await client.get_participants(channel, aggressive=True)
         logger.info(f"Retrieved {len(members_telethon_list)} participants from channel {channel}")
 
-        added_count = 0  # Счетчик добавленных пользователей
+        added_count = 0
 
-        # Итерация по участникам и вывод их информации
         for member in members_telethon_list:
             user_id = member.id
             username = member.username or None
@@ -87,6 +84,5 @@ async def run_subs_update(id):
     except Exception as e:
         logger.error(f"Error while starting or running the client: {e}")
     finally:
-        # Закрытие клиента и сессий
         await client.disconnect()
         logger.info("Client disconnected")

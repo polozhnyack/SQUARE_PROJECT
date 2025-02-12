@@ -28,7 +28,6 @@ target_bot_id_ru = 660309226
 search_command = '/search'
 next_command = '/next'
 
-# text_message = '🔥 TØP PØRN ÇÒŃTEŃT HÛB IN Ť₲ 🔞\n\n🤩__ϜΙΝD СНАΝΝΕL__✨ 👉 @lustsqr'
 text_message = random.choice(SPAM_MESSAGE)
 
 trigger_message = 'If you wish, leave your feedback about your partner. It will help us find better partners for you in the future' 

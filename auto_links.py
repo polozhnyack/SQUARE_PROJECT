@@ -13,55 +13,43 @@ import asyncio
 checker = URLChecker()
 fetcher = SeleniumFetcher(wait_time=1)
 
-
-# Функция для извлечения и обработки 24 блоков
 async def get_video_sslkn(html):
 
-    # Парсим HTML-страницу с помощью BeautifulSoup
     soup = BeautifulSoup(html, 'html.parser')
 
-    # Находим все элементы с классом 'item'
     items = soup.find_all('div', class_='item')
 
-    videos = []  # Для хранения подходящих блоков
+    videos = [] 
 
-    # Проходим по всем найденным элементам
     for item in items:
-        # Проверяем наличие ссылки
         link = item.find('a', class_='link')
         if not link or 'href' not in link.attrs or link['href'] in ['#', '']:
             continue
         video_link = link['href']
 
-        # Извлекаем информацию о "Русской озвучке" и значках
         premium_icons = item.find('div', class_='premium-icons')
         premium_text = premium_icons.find('div', class_='wrap second') if premium_icons else None
         icon_image = premium_icons.find('img') if premium_icons else None
 
-        # Если блок содержит "Русскую озвучку" или "Diamond icon", пропускаем
         if premium_text and "Русская озвучка" in premium_text.get_text(strip=True):
             continue
         if icon_image:
             continue
 
-        # Добавляем ссылку на видео в список
         videos.append(video_link)
 
-        # Проверяем, достигли ли мы лимита в 24 блока
         if len(videos) == 24:
             break
 
     return videos
 
 async def p365_links(html):
-    soup = BeautifulSoup(html, 'html.parser')  # Парсим HTML-код
+    soup = BeautifulSoup(html, 'html.parser') 
     links = []
     
-    # Находим все блоки с классом 'video_block trailer'
     video_blocks = soup.find_all('li', class_='video_block trailer')
     
-    for block in video_blocks[:15]:  # Ограничиваем до 15 ссылок
-        # Извлекаем ссылку из атрибута href
+    for block in video_blocks[:15]: 
         link = block.find('a', class_='image')['href']
         links.append(link)
     
@@ -72,7 +60,6 @@ def fetch_html_parallel(urls):
         htmls = list(executor.map(fetcher.fetch_html, urls))
     return htmls
 
-# Основная программа
 async def autoposting():
 
 

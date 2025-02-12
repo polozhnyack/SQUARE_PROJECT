@@ -22,24 +22,19 @@ class SeleniumFetcher:
         logger.info(f"Fetching HTML content from URL: {url}")
 
         try:
-            # Инициализация драйвера
             driver_path = ChromeDriverManager().install()
             service = ChromeService(driver_path)
             driver = webdriver.Chrome(service=service, options=self.chrome_options)
 
-            # Открываем страницу
             driver.get(url)
 
-            # Ожидание загрузки страницы
             time.sleep(self.wait_time)
 
-            # Получаем HTML
             html = driver.page_source
         except Exception as e:
             logger.error(f"Error while fetching HTML content: {e}")
             html = None
         finally:
-            # Закрываем драйвер
             driver.quit()
 
         return html

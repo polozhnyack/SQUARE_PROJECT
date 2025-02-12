@@ -32,7 +32,7 @@ if not os.path.exists(ADMIN_SESSION_FILE):
 async def on_startup():
     logger.info("Функция on_startup вызвана")
     try:
-        db = Database()  # Создание экземпляра базы данных
+        db = Database() 
         mc = ModuleControl()
 
         mc.update_module_status('SpamAnonChat', False)
@@ -59,10 +59,9 @@ async def main():
     logger.info("Запуск бота")
     register_handlers(dp)
 
-    proposal_dp.startup.register(on_startup)  # Можно использовать тот же `on_startup` если нужно
+    proposal_dp.startup.register(on_startup) 
     logger.info("Запуск бота предложки")
 
-    # await dp.start_polling(bot, skip_updates=True)
     await asyncio.gather(
         dp.start_polling(bot, skip_updates=True),
         proposal_dp.start_polling(proposal_bot, skip_updates=True)

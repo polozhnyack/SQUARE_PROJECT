@@ -16,7 +16,6 @@ async def upload_videos(video_info: dict):
 
     client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
     await client.start(phone=PHONE)
-    # Функция для обновления прогресса
     progress_state = {"last_update_time": 0, "progress_message": None}
 
     async def progress_callback(current, total, chat_id):
@@ -39,7 +38,6 @@ async def upload_videos(video_info: dict):
             progress_state["last_update_time"] = now
 
     try:
-        # Извлекаем данные из словаря
         processed_video_path = video_info.get('video_path')
         resized_img_path = video_info.get('resized_img_path')
         title = video_info.get('title')
@@ -50,7 +48,6 @@ async def upload_videos(video_info: dict):
         channel = video_info.get('channel')
         chat = video_info.get('chat')
 
-        # Отправляем видео в канал
         await client.send_file(
             channel,
             processed_video_path,
@@ -64,7 +61,6 @@ async def upload_videos(video_info: dict):
         await clear_directory('media/video')
         return True
     except Exception as e:
-        # Логируем ошибку и отправляем сообщение о сбое
         logger.error(f"Ошибка при выгрузке: {e}")
 
         await bot.send_message(chat_id=chat, 
@@ -73,10 +69,9 @@ async def upload_videos(video_info: dict):
                         disable_web_page_preview=True
                         )
         await client.disconnect()
-        return url  # Возвращаем URL в случае ошибки
+        return url
     
     finally:
-        # Удаляем сообщение с прогрессом, если оно есть
         if progress_state.get("progress_message"):
             await bot.delete_message(chat_id=chat, message_id=progress_state["progress_message"].message_id)
 
