@@ -150,9 +150,11 @@ async def start_link_post(query: CallbackQuery, state: FSMContext):
 
 async def handle_caption_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Введите текст поста.\n\nБот подставит картинку в автоматическом режиме.")
-    await state.set_state(waiting.any_post)
+    await state.set_state(waiting.caption_post)
 
 async def caption_text_post(message: types.Message, state: FSMContext):
+
+    # await state.set_state(waiting.activPosting)
 
     if message.text == "0":
         await selector(TEXT=RECOMEND_MSG)
@@ -165,7 +167,8 @@ async def caption_text_post(message: types.Message, state: FSMContext):
     else:
         text = message.text
         await selector(TEXT=text)
-        await state.clear()
+
+    await state.clear()
 
 async def any_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Режим произвольного поста.\n\nПрямой доступ к постингу в канал. (в разработке)")

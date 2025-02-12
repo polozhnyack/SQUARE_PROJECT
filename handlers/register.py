@@ -38,7 +38,7 @@ def register_handlers(dp: Dispatcher):
     router.callback_query.register(auto_link, lambda c: c.data == 'auto_posting')
     
     router.message.register(handle_user_link, waiting.waiting_video_link)
-    router.message.register(caption_text_post, waiting.any_post)
+    router.message.register(caption_text_post, waiting.caption_post)
 
     router.message.register(status_spam, Command(commands=['spam']))
     router.callback_query.register(edit_status_spam, lambda c: c.data and c.data.startswith('spam_status_'))
@@ -55,6 +55,7 @@ def register_handlers(dp: Dispatcher):
             types.ContentType.ANIMATION, 
             types.ContentType.DOCUMENT
         ]
+        # waiting.activPosting
     )
 
     dp.include_router(router)
