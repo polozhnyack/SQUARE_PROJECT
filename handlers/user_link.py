@@ -63,10 +63,7 @@ async def handle_user_link(message: types.Message, state: FSMContext):
     if processed_links > 10:
         await selector(TEXT=RECOMEND_MSG)
 
-    # Завершаем состояние FSM после обработки всех ссылок
-
     await state.clear()
-    # await progress_message.edit_text(f"✅*Постинг завершен!*\n\n ⬆️ Выгружено {processed_links} видео. ")
 
     if failed_links:  # Проверяем, есть ли необработанные ссылки
         failed_links_text = "\n".join(failed_links)  # Формируем текст с ссылками

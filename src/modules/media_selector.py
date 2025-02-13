@@ -4,7 +4,7 @@ import random
 import asyncio
 import re
 
-from config.config import API_HASH, API_ID, ADMIN_SESSION_FILE, PARSE_MODE
+from config.config import API_HASH, API_ID, ADMIN_SESSION_FILE, CHANNEL
 
 from config.settings import setup_logger
 
@@ -20,6 +20,11 @@ client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.
 async def selector(TEXT):
     await client.start()
     messages_with_photos = []
+
+    await client.send_message(
+        CHANNEL,
+        "/forwardActive"
+    )
 
     async for message in client.iter_messages(CHANNEL_ID, limit=None):
         if message.text and TARGET_PHRASE in message.text:

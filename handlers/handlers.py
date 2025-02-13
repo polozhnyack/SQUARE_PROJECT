@@ -4,6 +4,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 import aiofiles
 
+import asyncio
+
 from .state.state import waiting
 from db.ModuleControl import ModuleControl
 from src.utils.urlchek import URLChecker
@@ -148,27 +150,32 @@ async def start_link_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Пожалуйста, отправьте ссылку на видео.")
     await state.set_state(waiting.waiting_video_link)
 
+async def activate_forward(message: types.Message, state: FSMContext):
+    user = db.get_user(message.from_user.id)
+    if not user:
+        return
+    await state.set_state(waiting.activPosting)
+
 async def handle_caption_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Введите текст поста.\n\nБот подставит картинку в автоматическом режиме.")
     await state.set_state(waiting.caption_post)
 
 async def caption_text_post(message: types.Message, state: FSMContext):
 
-    # await state.set_state(waiting.activPosting)
-
     if message.text == "0":
         await selector(TEXT=RECOMEND_MSG)
         await message.answer("Пост рекомендаций отправлен.")
-        return
     elif message.text == "1":
         await selector(TEXT=agitation_text)
         await message.answer("Пост рекомендаций отправлен.")
-        return
     else:
         text = message.text
         await selector(TEXT=text)
 
     await state.clear()
+
+    new_state = await state.get_state()
+    print(f"DEBUG: После установки состояние: {new_state}")
 
 async def any_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Режим произвольного поста.\n\nПрямой доступ к постингу в канал. (в разработке)")

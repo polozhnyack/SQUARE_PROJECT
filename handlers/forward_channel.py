@@ -26,6 +26,17 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
     if not user:
         return
     
+    # Проверка типа контента
+    if message.content_type not in [
+        types.ContentType.TEXT, 
+        types.ContentType.PHOTO, 
+        types.ContentType.VIDEO, 
+        types.ContentType.ANIMATION, 
+        types.ContentType.DOCUMENT
+    ]:
+        return
+    
+    
     parse_mode = ParseMode.MARKDOWN_V2
     media_group_id = message.media_group_id
 

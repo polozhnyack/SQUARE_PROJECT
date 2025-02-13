@@ -1,4 +1,4 @@
-from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE, API_HASH, API_ID, PHONE
+from config.config import bot, DELAY_EDIT_MESSAGE, ADMIN_SESSION_FILE, API_HASH, API_ID, PHONE, CHANNEL
 from config.settings import setup_logger
 from src.utils.common import clear_directory
 
@@ -17,6 +17,10 @@ async def upload_videos(video_info: dict):
     client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
     await client.start(phone=PHONE)
     progress_state = {"last_update_time": 0, "progress_message": None}
+    await client.send_message(
+        CHANNEL,
+        "/forwardActive"
+    )
 
     async def progress_callback(current, total, chat_id):
         if progress_state["progress_message"] is None:
