@@ -62,7 +62,10 @@ async def parse(html) -> list:
     image_url = re.search(r'url\("([^"]+)"\)', style_attr)
     image_url = image_url.group(1) if image_url else None
 
-    text = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{formatted_tags}"
+    if actors is not None:
+        text = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n__Actors: {actors}__\n\n{formatted_tags}"
+    else:
+        text = f"{''.join(selected_emodji_start)}**{title_en.upper()}**{''.join(selected_emodji_end)}\n\n{formatted_tags}"
 
     # Проверяем, есть ли хотя бы один значимый элемент
     if not any([video_url, image_url, title, tags_text, actors]):

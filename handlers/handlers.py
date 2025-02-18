@@ -175,7 +175,6 @@ async def caption_text_post(message: types.Message, state: FSMContext):
     await state.clear()
 
     new_state = await state.get_state()
-    print(f"DEBUG: После установки состояние: {new_state}")
 
 async def any_post(query: CallbackQuery, state: FSMContext):
     await query.message.answer("Режим произвольного поста.\n\nДоступ к постингу в канал. Распространяется на 1 пост.")
