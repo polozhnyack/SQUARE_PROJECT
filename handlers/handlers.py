@@ -8,7 +8,6 @@ import asyncio
 
 from .state.state import waiting
 from db.ModuleControl import ModuleControl
-from src.utils.urlchek import URLChecker
 from src.modules.media_selector import selector
 from src.modules.update_subs import run_subs_update
 from templates.phrases import RECOMEND_MSG, agitation_text
@@ -18,7 +17,6 @@ from db.db import Database
 from config.config import ADMIN, bot  # Импортируем CHANEL_ID и CHANNEL_ID из bot.py
 from config.settings import setup_logger
 from src.utils.common import get_log_file
-from src.utils.urlchek import URLChecker
 
 
 logger = setup_logger()

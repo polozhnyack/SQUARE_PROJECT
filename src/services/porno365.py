@@ -35,8 +35,6 @@ async def parse(html) -> list:
     title_en  = await translator(title)
 
     actors_links = soup.find_all('a', class_='model_link')
-    
-    # translator = GoogleTranslator(source='ru', target='en')
     actors = ' '.join([f'#{(await translator(x.get_text(strip=True))).replace(" ", "_")}' for x in actors_links]) if actors_links else None
 
     tag_cont = soup.find('div', class_='video-categories')

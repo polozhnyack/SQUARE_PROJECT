@@ -1,7 +1,7 @@
 import re
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from fetcher import SeleniumFetcher
+from modules.fetcher import SeleniumFetcher
 
 import asyncio
 

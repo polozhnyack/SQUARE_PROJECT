@@ -5,6 +5,7 @@ import ffmpeg
 from deep_translator import GoogleTranslator
 from googletrans import Translator as GoogleTrans
 import aiohttp
+import requests
 
 import cv2
 import random
@@ -14,6 +15,8 @@ import json
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
+
+from fake_useragent import UserAgent
 
 logger = setup_logger()
 
@@ -155,10 +158,24 @@ async def get_log_file(log_directory='logs', base_filename='Square.log'):
     
     return os.path.join(log_directory, sorted_files[0])
 
-def to_fraktur(text):
-    fraktur_map = str.maketrans(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-        "𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝕌𝕍𝕲𝕏𝕐𝕫"
-        "𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟"
-    )
-    return text.translate(fraktur_map)
+import ffmpeg
+
+def get_video_details(url):
+
+    headers = {"user-agent": UserAgent().chrome}
+    try:
+        probe = ffmpeg.probe(url, v='error', select_streams='v:0', show_entries='stream=width,height,duration', format='json')
+        
+        width = probe['streams'][0]['width']
+        height = probe['streams'][0]['height']
+        
+        duration = float(probe['streams'][0]['duration'])
+        response = requests.get(url, stream=True, headers=headers)
+        
+        content_length = response.headers.get('Content-Length')
+        size = int(content_length) if content_length else None
+
+        return width, height, size, duration
+    except Exception as e:
+        print(f"Error retrieving video details: {e}")
+        return None, None, None, None

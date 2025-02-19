@@ -2,19 +2,16 @@ from bs4 import BeautifulSoup
 import json
 from deep_translator import GoogleTranslator
 
-
-
 def fetch_tags(html, json_file_path):
     # Словарь замен для определённых тэгов
     tag_replacements = {
         "Зрелые, милфы": "Милфы",
-        "Короткие волосы": "Короткие волосы",
-        "Большой член": "Большой член",
         "МЖМ": "MMF",
         "ЖМЖ": "FFM",
         "Красивые попки": "Ass",
         "Негры": "ebony",
-        "Негритянки": "Мулатки"
+        "Негритянки": "Mulatoes",
+        "От первого лица": "POV"
     }
 
     soup = BeautifulSoup(html, 'html.parser')
@@ -44,15 +41,5 @@ def fetch_tags(html, json_file_path):
     # Применяем замены для определённых тэгов только для совпадений
     matches = [tag_replacements.get(match, match) for match in matches]
 
-    # Переводим совпадения
-    try:
-        matches_translated = [GoogleTranslator(source='auto', target='en').translate(match) for match in matches]
-        # Заменяем пробелы на подчеркивания только после перевода
-        matches_translated = [match.replace(' ', '_') for match in matches_translated]
-    except Exception as e:
-        print(f"Ошибка при переводе: {e}")
-        return []
-
-    # Формируем строку с совпадениями, добавляя символ # перед каждым элементом
-    result = ' '.join(f"#{match}" for match in matches_translated)
-    return result
+    # Возвращаем просто список совпадений без перевода и без #
+    return matches

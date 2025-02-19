@@ -34,7 +34,6 @@ async def handle_user_link(message: types.Message, state: FSMContext):
 
         await progress_message.edit_text(progress_text, disable_web_page_preview=True, parse_mode='HTML')
 
-        
         for site, (json_file, handler) in site_handlers.items():
             if site in user_link:
                 if cheсker.check_url(user_link, filename=json_file):
@@ -60,7 +59,7 @@ async def handle_user_link(message: types.Message, state: FSMContext):
         else:
             await message.answer(f"Ссылка '{user_link}' не соответствует зарегистрированным сайтам. Пожалуйста, проверьте ссылку.")
 
-    if processed_links > 10:
+    if processed_links > 20:
         await selector(TEXT=RECOMEND_MSG)
 
     await state.clear()
