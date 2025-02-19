@@ -4,10 +4,12 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from src.utils.MetadataSaver import MetadataSaver
-from src.utils.common import extract_segment, translator, get_video_details
+from src.utils.common import extract_segment, translator, get_video_details, scale_img
 from locators import Locators
 
 from config.config import CHANNEL
+
+from src.modules.mediadownloader import MediaDownloader
 
 from src.utils.common import generate_emojis
 
@@ -49,7 +51,7 @@ class SeleniumFetcher:
 
         return html
     
-    async def fetch_all_data(self, urls: list) -> list[dict]:
+    async def collector(self, chat_id, urls: list) -> list[dict]:
         logger.info(f"Fetching data from URLs")
 
         data = []
@@ -65,61 +67,65 @@ class SeleniumFetcher:
                 time.sleep(1)  # Небольшая задержка, чтобы страницы успели открыться
 
             # Переключаемся на каждую вкладку и парсим её
-            for index in range(1, len(driver.window_handles)):  # Начинаем с 1, т.к. первая вкладка пустая
-                driver.switch_to.window(driver.window_handles[index])  # Переключаемся на вкладку
-                time.sleep(self.wait_time)  # Даём странице загрузиться
+            for index in range(1, len(driver.window_handles)):
+                try:
+                    driver.switch_to.window(driver.window_handles[index])  # Переключаемся на вкладку
+                    time.sleep(self.wait_time)  # Даём странице загрузиться
 
-                html = driver.page_source
-                url = driver.current_url
-                tag = extract_segment(url)
+                    html = driver.page_source
+                    url = driver.current_url
+                    tag = extract_segment(url)
 
-                print(f"Парсим {url} (тег: {tag})")  # Для отладки
+                    logger.info(f"Parsing {url} (tag: {tag})")  # Для отладки
 
-                dict = Locators(html).Locator(url)
+                    dict = Locators(html).Locator(url)
 
-                title = dict.get("title")
-                tags = dict.get("tags")
-                video_url = dict.get("video_url")
-                img_url = dict.get("img_url")
+                    title = dict.get("title")
+                    tags = dict.get("tags")
+                    video_url = dict.get("video_url")
+                    img_url = dict.get("img_url")
 
-                tags_str = ", ".join(tags)
-                translated_title = await translator(title)
-                translated_tags = await translator(tags_str)
+                    tags_str = ", ".join(tags)
+                    translated_title = await translator(title)
+                    translated_tags = await translator(tags_str)
 
-                tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
-                
-                width, height, size, duration = get_video_details(video_url)
+                    tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
+                    
+                    width, height, size, duration = get_video_details(video_url)
 
-                emodji_start, emodji_end = generate_emojis()
+                    emodji_start, emodji_end = generate_emojis()
 
-                text = f"{''.join(emodji_start)}**{translated_title.upper()}**{''.join(emodji_end)}\n\n{tags}"
+                    text = f"{''.join(emodji_start)}**{translated_title.upper()}**{''.join(emodji_end)}\n\n{tags}"
 
-                data.append({
-                    tag:{
-                        "url": url,
-                        "title": text,
-                        "content": {
-                            "video_url": video_url, 
-                            "img_url": img_url,
-                        },
-                        "details": {
-                            "width" : width,
-                            "height": height,
-                            "size": size,
-                            "duration": duration,
-                        },
-                        "path":{
-                            "video": None,
-                            "thumb": None
-                        },
-                        "channel": CHANNEL,
-                        "chat": 3423423
-                    }
-                })
+                    data.append({
+                        tag:{
+                            "url": url,
+                            "title": text,
+                            "content": {
+                                "video_url": video_url, 
+                                "img_url": img_url,
+                            },
+                            "details": {
+                                "width" : width,
+                                "height": height,
+                                "size": size,
+                                "duration": duration,
+                            },
+                            "path":{
+                                "video": None,
+                                "thumb": None
+                            },
+                            "channel": CHANNEL,
+                            "chat": chat_id
+                        }
+                    })
+                except Exception as e:
+                    logger.error(f"Error while processing {url} (tag: {tag}): {e}")
+                    continue
+
             driver.quit()
-
-            return data
-
+            logger.info(f"len data: {len(data)}")
+            return MetadataSaver(base_directory="JSON/meta").save_metadata(filename='videos_data', metadata=data)
         except Exception as e:
             logger.error(f"Error during fetching: {e}")
             return []
@@ -134,9 +140,36 @@ async def main():
         'https://wv.sslkn.porn/videos/molod-serdcem/'
     ]
 
-    data = await fetcher.fetch_all_data(urls)
+    # path_metadata = await fetcher.collector(urls)
 
-    MetadataSaver().save_metadata(filename='data', metadata=data)
-    
+    for url in urls:
+        tag = extract_segment(url)
+
+        md = MetadataSaver(base_directory="JSON/meta").load_metadata(filename="videos_data")
+
+        video_data = None
+        for item in md:
+            if tag in item:  # Если tag соответствует ключу в словаре
+                video_data = item[tag]
+                break
+        
+        if video_data:
+            video_url = video_data["content"].get("video_url")
+            img_url = video_data["content"].get("img_url")
+            width = video_data["details"].get("width")
+            height = video_data["details"].get("height")
+
+            logger.info(f"Extract:\n\n{video_url}\n\n{img_url}")
+
+        
+            video_file_path, img_file_path = MediaDownloader(save_directory="media/video", chat_id=None).download_file(video_url, img_url, video_filename=tag, img_filename=tag)
+            resized_img_path = f'media/video/{tag}_resized_img.jpg'
+
+            # video_file_path, img_file_path = "example-video", "example-img"
+
+            resized_img_path = f"resized_{img_file_path}"
+            # await scale_img(image_path=img_file_path, output_image_path=resized_img_path, width=width, height=height)
+
+            MetadataSaver.update_video_paths(tag=tag, video_path=video_file_path, thumb_path=resized_img_path)
 
 asyncio.run(main())

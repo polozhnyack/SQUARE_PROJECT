@@ -43,6 +43,7 @@ class MetadataSaver:
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 json.dump(metadata, f, ensure_ascii=False, indent=4)
             logger.info(f"Metadata saved to {json_file_path}")
+            return str(json_file_path)
         except Exception as e:
             logger.error(f"Error saving metadata to JSON: {e}")
 
@@ -63,3 +64,39 @@ class MetadataSaver:
         except Exception as e:
             logger.error(f"Error loading metadata from JSON: {e}")
             return {}
+        
+    def update_video_paths(tag, video_path=None, thumb_path=None, json_file="JSON/meta/videos_data.json"):
+        
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            # Если data - это список, проверим каждый элемент
+            if isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict) and tag in item:
+                        video_data = item[tag]
+                        # Обновляем пути
+                        if video_path:
+                            logger.info(f"Updating video path for tag '{tag}' to {video_path}")
+                            video_data["path"]["video"] = video_path
+                        if thumb_path:
+                            logger.info(f"Updating thumb path for tag '{tag}' to {thumb_path}")
+                            video_data["path"]["thumb"] = thumb_path
+                        
+                        # Сохраняем обратно в файл
+                        with open(json_file, 'w', encoding='utf-8') as f:
+                            json.dump(data, f, ensure_ascii=False, indent=4)
+                        
+                        logger.info(f"Successfully updated paths for tag '{tag}' and saved to {json_file}")
+                        return json_file
+
+            logger.warning(f"Tag '{tag}' not found in the list of JSON data.")
+            print(f"Tag '{tag}' not found in JSON.")
+            return None
+
+        except Exception as e:
+            logger.error(f"Error while updating paths for tag '{tag}': {e}")
+            print(f"Error while updating paths: {e}")
+            return None
+
