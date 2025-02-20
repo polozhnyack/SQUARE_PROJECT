@@ -4,6 +4,7 @@ from config.config import emodji as emodji_list
 import ffmpeg
 from deep_translator import GoogleTranslator
 from googletrans import Translator as GoogleTrans
+import ffmpeg
 import aiohttp
 import requests
 
@@ -12,6 +13,7 @@ import random
 import os
 import re
 import json
+import subprocess
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
@@ -129,22 +131,26 @@ def extract_segment(url: str, domain_keyword: str = "porno365") -> str:
         return ""
 
 async def find_metadata(url: str):
-    directory = "media/video"
+    directory = "meta"
     directory_path = Path(directory)
 
     if not directory_path.exists() or not directory_path.is_dir():
         raise FileNotFoundError(f"Directory {directory} not found")
+    
+    tag = extract_segment(url)
 
     for json_file in directory_path.glob("*.json"):
         try:
-            with open(json_file, 'r') as file:
+            with open(json_file, 'r', encoding="utf-8") as file:
                 video_info = json.load(file)
 
-            if video_info.get('url') == url:
-                return video_info
+            if tag in video_info and video_info[tag].get('url') == url:
+                return video_info[tag]
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON from file {json_file.name}: {e}")
-            return None
+            continue  
+
+    return None  # Если ничего не найдено
         
 async def get_log_file(log_directory='logs', base_filename='Square.log'):
     log_pattern = re.compile(rf'^{base_filename}(\.(\d+))?$')
@@ -157,8 +163,6 @@ async def get_log_file(log_directory='logs', base_filename='Square.log'):
     sorted_files = sorted(matching_files, key=lambda f: int(log_pattern.search(f).group(2) or 0), reverse=True)
     
     return os.path.join(log_directory, sorted_files[0])
-
-import ffmpeg
 
 def get_video_details(url):
 
@@ -179,3 +183,20 @@ def get_video_details(url):
     except Exception as e:
         print(f"Error retrieving video details: {e}")
         return None, None, None, None
+
+def is_video_valid(file_path):
+    try:
+        # Команда для проверки видеофайла через ffmpeg
+        result = subprocess.run(
+            ['ffmpeg', '-v', 'error', '-i', file_path, '-f', 'null', '-'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        if result.returncode == 0:
+            return True
+        else:
+            return False
+    except Exception as e:
+        logger.error(f"Ошибка при проверке видео {file_path}: {e}")
+        return False
+

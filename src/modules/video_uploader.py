@@ -42,12 +42,12 @@ async def upload_videos(video_info: dict):
             progress_state["last_update_time"] = now
 
     try:
-        processed_video_path = video_info.get('video_path')
-        resized_img_path = video_info.get('resized_img_path')
+        processed_video_path = video_info["path"].get('video')
+        resized_img_path = video_info["path"].get('thumb')
         title = video_info.get('title')
-        duration = video_info.get('duration')
-        width = video_info.get('width')
-        height = video_info.get('height')
+        duration = video_info["details"].get('duration')
+        width = video_info["details"].get('width')
+        height = video_info["details"].get('height')
         url = video_info.get('url')
         channel = video_info.get('channel')
         chat = video_info.get('chat')

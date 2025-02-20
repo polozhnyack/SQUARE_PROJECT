@@ -5,7 +5,7 @@ from deep_translator import GoogleTranslator
 def fetch_tags(html, json_file_path):
     # Словарь замен для определённых тэгов
     tag_replacements = {
-        "Зрелые, милфы": "Милфы",
+        "Зрелые, милфы": "Milfs",
         "МЖМ": "MMF",
         "ЖМЖ": "FFM",
         "Красивые попки": "Ass",

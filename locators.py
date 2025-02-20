@@ -1,13 +1,11 @@
 from bs4 import BeautifulSoup
 import re
 from src.utils.find_tags import fetch_tags
-from config.sites import SITE_HANDLERS
 
 class Locators:
     def __init__(self, html):
         self.soup = BeautifulSoup(html, 'html.parser')
         self.html = html
-        self.SITE_HANDLERS = SITE_HANDLERS
 
     def Porno365Locators(self, url):
 
