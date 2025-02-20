@@ -9,17 +9,11 @@ from src.services.locators import Locators
 
 from config.config import CHANNEL
 
-from src.modules.mediadownloader import MediaDownloader
-
 from src.utils.common import generate_emojis
-
-import asyncio
 
 from config.settings import setup_logger
 
-
 logger = setup_logger()
-
 class SeleniumFetcher:
     def __init__(self, wait_time=2):
         self.wait_time = wait_time

@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import json
-from deep_translator import GoogleTranslator
 
 def fetch_tags(html, json_file_path):
     # Словарь замен для определённых тэгов
