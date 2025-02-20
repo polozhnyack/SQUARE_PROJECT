@@ -5,7 +5,7 @@ from aiogram import Bot
 
 load_dotenv()
 
-BASE_URL_SSLKN = 'https://wv.sslkn.porn'
+BASE_URL_SSLKN = 'https://ww.sosalkino.tube/'
 BASE_URL_P365 = 'http://1porno365.net/'
 
 TOKEN = os.getenv('TOKEN')
@@ -20,6 +20,18 @@ LUSTBOT_LINK = os.getenv('LUSTBOT_LINK')
 
 ADMIN_SESSION_FILE = "userbot.session"
 PARSE_MODE = "MarkdownV2"
+
+BASE_PATH_JSON = "JSON/"
+
+TAGS_JSON = {
+    "sosalkino": f"{BASE_PATH_JSON}tags_sslkn.json",
+    "porno365": None
+}
+SAVED_URLS_JSON = {
+    "sosalkino": f"{BASE_PATH_JSON}sslkn.json",
+    "porno365": f"{BASE_PATH_JSON}p365.json",
+    "xvideos": f"{BASE_PATH_JSON}xvideos.json"
+}
 
 emodji =  ['❤️', '✨','🌟','⭐','🔥','⚡','🌙','☀️','💥','💣','😈', '😘','🥰','😏','😍','🤤','💫','🍒','🖤','🥵','😋','😀','😃','❤️', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟','🤭','😄', '🌚','👌','👍', '🤩', '🍆', '💦', '🍑', '👀', '🍓', '💋', '🔞','💯', '❌','⭕️','💢']
 

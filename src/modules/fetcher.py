@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from src.utils.MetadataSaver import MetadataSaver
 from src.utils.common import extract_segment, translator, get_video_details, scale_img
-from locators import Locators
+from src.services.locators import Locators
 
 from config.config import CHANNEL
 
@@ -28,6 +28,13 @@ class SeleniumFetcher:
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
+        self.chrome_options.add_argument("--lang=en-US,en")  # Притворяемся американцем
+        self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Скрываем, что это Selenium
+        self.chrome_options.add_experimental_option("prefs", {
+            "intl.accept_languages": "en-US,en",  
+            "profile.default_content_setting_values.cookies": 2,  # Отключаем куки
+        })
+
 
     def fetch_html(self, url) -> str:
         """Метод для получения HTML контента с указанного URL."""
@@ -79,17 +86,19 @@ class SeleniumFetcher:
                     logger.info(f"Parsing {url} (tag: {tag})")  # Для отладки
 
                     dict = Locators(html).Locator(url)
-
+                    
                     title = dict.get("title")
                     tags = dict.get("tags")
                     video_url = dict.get("video_url")
                     img_url = dict.get("img_url")
 
                     tags_str = ", ".join(tags)
-                    translated_title = await translator(title)
-                    translated_tags = await translator(tags_str)
 
-                    tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
+                    if dict.get("domain") in {"xvideos"}:
+                        translated_title, tags = title, tags_str
+                    else:
+                        translated_title, translated_tags = await translator(title), await translator(tags_str)
+                        tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
                     
                     width, height, size, duration = get_video_details(video_url)
 

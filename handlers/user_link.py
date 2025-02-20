@@ -6,7 +6,6 @@ from src.utils.urlchek import URLChecker
 from src.modules.media_selector import selector
 from src.utils.common import find_metadata, is_video_valid
 from src.modules.video_uploader import upload_videos
-from templates.phrases import RECOMEND_MSG
 from config.config import bot
 from config.sites import SITE_HANDLERS
 
@@ -17,7 +16,6 @@ from config.settings import setup_logger
 logger = setup_logger()
 cheсker = URLChecker() 
 
-from urllib.parse import urlparse
 
 async def handle_user_link(message: types.Message, state: FSMContext):
     user_links = [link.strip() for link in message.text.splitlines() if link.strip()]
@@ -32,7 +30,6 @@ async def handle_user_link(message: types.Message, state: FSMContext):
             if site in url:
                 if cheсker.check_url(url, filename=json_file):
                     logger.info(f"Checker: True")
-
                     video_data = await find_metadata(url)
                     if video_data is not None:
                         logger.info(f"Video data: {video_data}")
@@ -40,14 +37,12 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                         video_path = video_data["path"].get("video")
                         if is_video_valid(video_path):
                             await upload_videos(video_info=video_data)
-                            processed_links += 1
                             processed = True
                         else:
                             logger.warning(f"Файл не прошел проверку на целостность. Путь: {video_path}")
                     else:
                         logger.warning(f"Не удалось найти метаданные для {url}")
                         filtered_links.append(url)
-
                 else:
                     skipped_links.append(url)
                     processed = True
@@ -65,5 +60,5 @@ async def handle_user_link(message: types.Message, state: FSMContext):
     logger.info(f"Filtered links: {filtered_links}")
     if filtered_links:
         await MultiHandler(filtered_links, message.chat.id)
-        
+
     await state.clear()

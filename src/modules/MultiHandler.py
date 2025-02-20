@@ -6,10 +6,11 @@ from src.modules.mediadownloader import MediaDownloader
 from src.modules.video_uploader import upload_videos
 from config.sites import SITE_HANDLERS
 from src.utils.urlchek import URLChecker
+from src.modules.media_selector import selector
+from templates.phrases import RECOMEND_MSG
 
 from config.config import bot
 
-import asyncio
 
 logger = setup_logger()
 
@@ -23,6 +24,8 @@ async def MultiHandler(urls: list, chat_id: int):
     )
 
     fetcher = SeleniumFetcher()
+    checker = URLChecker()
+
     await fetcher.collector(urls=urls, chat_id=chat_id)
 
     md = MetadataSaver(base_directory="meta").load_metadata(filename="videos_data")
@@ -69,7 +72,7 @@ async def MultiHandler(urls: list, chat_id: int):
             logger.info(f"Successfully uploaded video for tag {tag}")
             for site, (json_file) in SITE_HANDLERS.items():
                 if site in url:
-                    URLChecker.save_url(url=url, filename=json_file)
+                    checker.save_url(url=url, filename=json_file)
                     logger.info(f"URL {url} сохранен в {json_file}")
                     break
                 else:
@@ -91,7 +94,9 @@ async def MultiHandler(urls: list, chat_id: int):
                 disable_web_page_preview=True,
                 parse_mode="Markdown"
             )
-        
     await clear_directory("meta")
+
+    if processed_links > 20:
+        await selector(TEXT=RECOMEND_MSG)
         
     return processed_links

@@ -32,7 +32,7 @@ async def save_link_answer(message: types.Message, state: FSMContext):
 
     await bot.delete_message(chat_id=chat_id, message_id=message_id)
 
-    for site, (json_file, handler) in site_handlers.items():
+    for site, json_file in site_handlers.items():
         if site in link:
             if cheсker.check_url(link, filename=json_file):
                 message = await message.answer(

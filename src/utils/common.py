@@ -139,7 +139,7 @@ async def find_metadata(url: str):
     
     tag = extract_segment(url)
 
-    for json_file in directory_path.glob("*.json"):
+    for json_file in directory_path.glob("videos_data.json"):
         try:
             with open(json_file, 'r', encoding="utf-8") as file:
                 video_info = json.load(file)
@@ -149,7 +149,6 @@ async def find_metadata(url: str):
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON from file {json_file.name}: {e}")
             continue  
-
     return None  # Если ничего не найдено
         
 async def get_log_file(log_directory='logs', base_filename='Square.log'):
