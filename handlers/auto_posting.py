@@ -1,7 +1,5 @@
 from aiogram import types
 from aiogram.fsm.context import FSMContext
-from src.services.porno365 import porno365
-from src.services.sosalkino import sosalkino
 from src.utils.urlchek import URLChecker
 
 from src.modules.media_selector import selector
@@ -65,8 +63,8 @@ async def auto_link(query: types.CallbackQuery, state: FSMContext):
         # Обрабатываем ссылки для сайта sslkn
         if "sslkn" in user_link:
             if cheсker.check_url(user_link, filename="JSON/sslkn.json"):
-                succes = await sosalkino(user_link, chat_id=message.chat.id)
-                if succes == True:
+                # succes = await sosalkino(user_link, chat_id=message.chat.id)
+                if True:
                     cheсker.save_url(user_link, filename="JSON/sslkn.json")
                     processed_links += 1
                 else:
@@ -78,9 +76,9 @@ async def auto_link(query: types.CallbackQuery, state: FSMContext):
         # Обрабатываем ссылки для сайта porno365
         elif "porno365" in user_link:
             if cheсker.check_url(user_link, filename="JSON/p365.json"):
-                result = await porno365(chat_id=message.chat.id, link=user_link)
+                # result = await porno365(chat_id=message.chat.id, link=user_link)
 
-                if result is True:
+                if True:
                     cheсker.save_url(user_link, filename="JSON/p365.json")
                     processed_links += 1
                 else:

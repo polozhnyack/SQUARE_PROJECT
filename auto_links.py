@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from config.config import BASE_URL_SSLKN, BASE_URL_P365
 from src.utils.urlchek import URLChecker
-from src.services.sosalkino import sosalkino
+# from src.services.sosalkino import sosalkino
 from src.modules.fetcher import SeleniumFetcher
 
 from concurrent.futures import ThreadPoolExecutor
