@@ -16,7 +16,7 @@ class MetadataSaver:
         :param base_directory: Базовая директория для сохранения JSON файлов.
         """
         self.base_directory = base_directory
-        os.makedirs(self.base_directory, exist_ok=True)  # Создаем директорию, если не существует
+        os.makedirs(self.base_directory, exist_ok=True)
 
     @staticmethod
     def sanitize_filename(title: str) -> str:
@@ -71,12 +71,10 @@ class MetadataSaver:
             with open(json_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            # Если data - это список, проверим каждый элемент
             if isinstance(data, list):
                 for item in data:
                     if isinstance(item, dict) and tag in item:
                         video_data = item[tag]
-                        # Обновляем пути
                         if video_path:
                             logger.info(f"Updating video path for tag '{tag}' to {video_path}")
                             video_data["path"]["video"] = video_path

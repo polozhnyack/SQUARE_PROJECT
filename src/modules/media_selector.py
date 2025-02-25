@@ -1,9 +1,6 @@
 from telethon import TelegramClient
-from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
+from telethon.tl.types import MessageMediaPhoto
 import random
-import asyncio
-import re
-
 from config.config import API_HASH, API_ID, ADMIN_SESSION_FILE, CHANNEL
 
 from config.settings import setup_logger
@@ -12,7 +9,7 @@ logger = setup_logger()
 
 # CHANNEL_ID = 2111900281 
 TARGET_BOT_USERNAME = '@Squareposting_bot' 
-TARGET_PHRASE = 'Girls❤️✨'  # Текст для поиска
+TARGET_PHRASE = 'Girls❤️✨'
 CHANNEL_ID = 2314838211
 
 client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
@@ -35,7 +32,6 @@ async def selector(TEXT):
         chosen_message = random.choice(messages_with_photos)
         media_type = 'photo'
 
-        # Отправка выбранного фото
         await client.send_file(TARGET_BOT_USERNAME, chosen_message.media, caption=TEXT)
         logger.info(f"Пост с {media_type.upper()} отправлен. Текст: {TEXT}")
     else:

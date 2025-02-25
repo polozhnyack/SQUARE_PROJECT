@@ -65,13 +65,10 @@ async def action_with_link(query: CallbackQuery, state: FSMContext):
         link = user_data.get('link')
         json_file = user_data.get('json_file')
 
-        # Обработка различных действий с ссылкой
         if data.startswith("remove_link"):
-            # Удаление ссылки
             cheсker.remove_url(url=link, filename=json_file)
             await query.answer("Ссылка была удалена.", show_alert=False)
         elif data.startswith("save_link"):
-            # Сохранение ссылки
             cheсker.save_url(url=link, filename=json_file)
             await query.answer("Ссылка была сохранена.", show_alert=False)
         else:
@@ -79,10 +76,8 @@ async def action_with_link(query: CallbackQuery, state: FSMContext):
         await query.message.delete()
 
     except Exception as e:
-        # Логирование ошибки
         logger.error(f"Ошибка при обработке callback: {e}")
         await query.answer("Произошла ошибка. Попробуйте снова.", show_alert=False)
 
     finally:
-        # Очистка состояния
         await state.clear()

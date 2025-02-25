@@ -15,6 +15,8 @@ from config.config import bot
 logger = setup_logger()
 
 async def MultiHandler(urls: list, chat_id: int):
+
+
     total_links = len(urls)
     processed_links = 0
     failed_links = []
@@ -66,7 +68,7 @@ async def MultiHandler(urls: list, chat_id: int):
 
         result = await upload_videos(updated_video_data)
 
-        if isinstance(result, str):  # Если `upload_videos` вернул ошибку (URL)
+        if isinstance(result, str):
             logger.error(f"Error uploading video for tag {tag}: {result}")
             failed_links.append(result)
         else:
@@ -82,8 +84,8 @@ async def MultiHandler(urls: list, chat_id: int):
 
         await clear_directory("media/video")
         
-    if failed_links:  # Проверяем, есть ли необработанные ссылки
-        failed_links_text = "\n".join(failed_links)  # Формируем текст с ссылками
+    if failed_links: 
+        failed_links_text = "\n".join(failed_links)
         await progress_message.edit_text(
             text=f"✅*Постинг завершен!*\n\n⬆️ Выгружено {processed_links} видео.\n\n❌ Не удалось обработать следующие ссылки:\n{failed_links_text}",
             disable_web_page_preview=True,

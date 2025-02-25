@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, Chat
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
@@ -13,8 +13,6 @@ import sqlite3
 import re
 
 logger = setup_logger()
-
-# Инициализация бота
 
 logger.info("Initializing bot...")
 
@@ -50,11 +48,9 @@ async def start_handler(message: Message):
     logger.info(f"Sent start message to user {message.from_user.id}.")
 
 
-# Словарь для хранения данных сообщений
 messages_data = {}
 
 def contains_forbidden_words(text: str) -> bool:
-    # Преобразуем текст в нижний регистр и проверяем на наличие запрещенных слов
     return any(re.search(r'\b' + re.escape(word) + r'\b', text.lower()) for word in FORBIDDEN_WORDS)
 
 import sqlite3
@@ -63,7 +59,6 @@ import re
 FORBIDDEN_WORDS = ['Cp']
 
 def contains_forbidden_words(text: str) -> bool:
-    # Преобразуем текст в нижний регистр и проверяем наличие запрещенных слов
     return any(word.lower() in text.lower() for word in FORBIDDEN_WORDS)
 
 @proposal_router.message(lambda message: message.content_type in {"text", "photo", "video", "audio", "document", "voice"})
@@ -102,7 +97,6 @@ async def forward_proposal_handler(message):
             await message.reply("✅ Your message has been automatically published in the channel.")
             return
 
-        # Проверяем, есть ли в сообщении запрещенные слова
         if message.text and contains_forbidden_words(message.text):
             logger.warning(f"User {message.from_user.id} used forbidden words. Banning user.")
             
@@ -177,18 +171,15 @@ async def forward_proposal_handler(message):
 @proposal_router.callback_query(lambda c: c.data.startswith("approve"))
 async def approve_post(call: CallbackQuery):
     try:
-        # Извлекаем admin_message_id из call.data
         user_id = int(call.data.split("_")[2])
         admin_message_id = int(call.data.split("_")[1])
 
-        # Получаем данные сообщения
         message_data = messages_data.get(admin_message_id)
         if not message_data:
             logger.error(f"No data found for message ID {admin_message_id}")
             await call.answer("Original message data not found.")
             return
 
-        # Пересылаем сообщение в канал
         watermark = watermark_proposal
         if message_data["type"] == "text":
             await proposal_bot.send_message(
@@ -213,7 +204,6 @@ async def approve_post(call: CallbackQuery):
                 parse_mode=PARSE_MODE,
                 caption=f"{message_data['caption']}{watermark}" if message_data.get("caption") else watermark
             )
-        # Добавьте обработку для других типов сообщений аналогично...
 
         try:
             await proposal_bot.send_message(
@@ -229,12 +219,9 @@ async def approve_post(call: CallbackQuery):
         logger.error(f"Failed to process approval: {e}")
         await call.answer("An error occurred while approving the message.")
 
-
-
 @proposal_router.callback_query(lambda c: c.data.startswith("reject"))
 async def reject_post(call: CallbackQuery):
     try:
-        # Извлекаем message_id из callback_data
         original_message_id = int(call.data.split("_")[1])
         original_message_id2 = int(call.data.split("_")[2])
     except ValueError:
@@ -245,7 +232,6 @@ async def reject_post(call: CallbackQuery):
     logger.info(f"Rejecting message with ID {original_message_id}.")
 
     try:
-        # Отправляем пользователю уведомление об отклонении
         await proposal_bot.send_message(
             chat_id=original_message_id,
             text="Your proposal has been rejected."
@@ -256,7 +242,6 @@ async def reject_post(call: CallbackQuery):
             message_ids=[original_message_id2, call.message.message_id]
         )
 
-        # Подтверждаем отклонение
         await call.answer("Post rejected.")
         logger.info(f"Message {original_message_id} rejected.")
     except Exception as e:
@@ -264,17 +249,13 @@ async def reject_post(call: CallbackQuery):
         await call.answer("An error occurred while rejecting the message.")
 
 
-from aiogram.types import Chat
 
 @proposal_router.callback_query(lambda c: c.data.startswith("ban"))
 async def ban_user(call: CallbackQuery):
 
-
-    # Извлекаем user_id из callback_data
     user_id = int(call.data.split("_")[1])
 
     try:
-        # Получаем данные пользователя
         chat: Chat = await proposal_bot.get_chat(user_id)
         username = chat.username or "Unknown"
         
@@ -283,14 +264,12 @@ async def ban_user(call: CallbackQuery):
         logger.error(f"Failed to fetch username for user {user_id}: {e}")
         username = "Unknown"
     finally:
-        # Добавляем пользователя в таблицу banned
         with sqlite3.connect('users.db') as conn:
             cursor = conn.cursor()
             cursor.execute('INSERT INTO banned (id, username) VALUES (?, ?)', (user_id, username))
             conn.commit()
 
 
-    # Уведомляем админа
     await call.answer(f"User {username} has been banned.")
     await call.message.reply(f"User @{username} (ID: {user_id}) has been banned from making suggestions.")
 
@@ -299,25 +278,20 @@ async def ban_user(call: CallbackQuery):
 async def unban_user(call: CallbackQuery):
     user_id = int(call.data.split("_")[1])
     try:
-        # Получаем данные пользователя
         chat: Chat = await proposal_bot.get_chat(user_id)
         username = chat.username or "Unknown"
     except Exception as e:
         logger.error(f"Failed to fetch username for user {user_id}: {e}")
         username = "Unknown"
 
-    # Убираем пользователя из таблицы banned
     with sqlite3.connect('users.db') as conn:
         cursor = conn.cursor()
         cursor.execute('DELETE FROM banned WHERE id = ?', (user_id,))
         conn.commit()
 
-    # Отправка уведомления админу о разблокировке
     await call.answer(f"User {username} has been unbanned.")
     await call.message.reply(f"User @{username} has been unbanned and can make suggestions again.")
 
-
-# Возврат бота и диспетчера
 def get_proposal_bot():
     logger.info("Returning dispatcher and bot instance.")
     return proposal_dp, proposal_bot

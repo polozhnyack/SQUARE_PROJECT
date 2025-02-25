@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from src.utils.MetadataSaver import MetadataSaver
-from src.utils.common import extract_segment, translator, get_video_details, scale_img
+from src.utils.common import extract_segment, translator, get_video_details
 from src.services.locators import Locators
 
 from config.config import CHANNEL
@@ -18,20 +18,19 @@ class SeleniumFetcher:
     def __init__(self, wait_time=2):
         self.wait_time = wait_time
         self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless")  # Запуск без графического интерфейса
+        self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
-        self.chrome_options.add_argument("--lang=en-US,en")  # Притворяемся американцем
-        self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Скрываем, что это Selenium
+        self.chrome_options.add_argument("--lang=en-US,en")
+        self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         self.chrome_options.add_experimental_option("prefs", {
             "intl.accept_languages": "en-US,en",  
-            "profile.default_content_setting_values.cookies": 2,  # Отключаем куки
+            "profile.default_content_setting_values.cookies": 2,
         })
 
 
     def fetch_html(self, url) -> str:
-        """Метод для получения HTML контента с указанного URL."""
         logger.info(f"Fetching HTML content from URL: {url}")
 
         try:
@@ -62,22 +61,20 @@ class SeleniumFetcher:
             service = ChromeService(driver_path)
             driver = webdriver.Chrome(service=service, options=self.chrome_options)
 
-            # Открываем все страницы в новых вкладках
             for url in urls:
                 driver.execute_script(f"window.open('{url}', '_blank');")
-                time.sleep(1)  # Небольшая задержка, чтобы страницы успели открыться
+                time.sleep(1)
 
-            # Переключаемся на каждую вкладку и парсим её
             for index in range(1, len(driver.window_handles)):
                 try:
-                    driver.switch_to.window(driver.window_handles[index])  # Переключаемся на вкладку
-                    time.sleep(self.wait_time)  # Даём странице загрузиться
+                    driver.switch_to.window(driver.window_handles[index])  
+                    time.sleep(self.wait_time) 
 
                     html = driver.page_source
                     url = driver.current_url
                     tag = extract_segment(url)
 
-                    logger.info(f"Parsing {url} (tag: {tag})")  # Для отладки
+                    logger.info(f"Parsing {url} (tag: {tag})")
 
                     dict = Locators(html).Locator(url)
                     

@@ -185,7 +185,6 @@ def get_video_details(url):
 
 def is_video_valid(file_path):
     try:
-        # Команда для проверки видеофайла через ffmpeg
         result = subprocess.run(
             ['ffmpeg', '-v', 'error', '-i', file_path, '-f', 'null', '-'],
             stdout=subprocess.PIPE,

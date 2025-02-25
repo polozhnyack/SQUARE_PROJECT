@@ -41,11 +41,4 @@ class ModuleControl:
         """Закрытие соединения при удалении объекта."""
         self.conn.close()
 
-# Пример использования класса
-# if __name__ == "__main__":
-#     mc = ModuleControl()
-
-#     # Включение функции
-#     mc.update_module_status('example_function', True)
-
 
