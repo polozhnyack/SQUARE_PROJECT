@@ -23,21 +23,15 @@ async def handle_user_link(message: types.Message, state: FSMContext):
     skipped_links = []
 
     for site, json_file in SITE_HANDLERS.items():
-        logger.info(f"Site: {site}, Json: {json_file}")
-        processed = False
         for url in user_links:
-            logger.info(f"for {url} in {user_links}")
             if site in url:
                 if cheсker.check_url(url, filename=json_file):
-                    logger.info(f"Checker: True")
                     video_data = await find_metadata(url)
                     if video_data is not None:
                         logger.info(f"Video data: {video_data}")
-
                         video_path = video_data["path"].get("video")
                         if is_video_valid(video_path):
                             await upload_videos(video_info=video_data)
-                            processed = True
                         else:
                             logger.warning(f"Файл не прошел проверку на целостность. Путь: {video_path}")
                     else:
@@ -45,9 +39,6 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                         filtered_links.append(url)
                 else:
                     skipped_links.append(url)
-                    processed = True
-        if not processed:
-            logger.warning(f"Сайт для ссылки {url} не найден в SITE_HANDLERS.")
 
     if skipped_links:
         await message.answer(

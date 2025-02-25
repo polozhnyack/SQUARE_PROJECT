@@ -126,9 +126,11 @@ class SeleniumFetcher:
                     logger.error(f"Error while processing {url} (tag: {tag}): {e}")
                     continue
 
-            driver.quit()
             logger.info(f"len data: {len(data)}")
             return MetadataSaver(base_directory="meta").save_metadata(filename='videos_data', metadata=data)
         except Exception as e:
             logger.error(f"Error during fetching: {e}")
             return []
+        finally:
+            driver.quit()
+            logger.info("WebDriver has quit.")

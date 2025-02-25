@@ -27,8 +27,9 @@ async def MultiHandler(urls: list, chat_id: int):
     checker = URLChecker()
 
     await fetcher.collector(urls=urls, chat_id=chat_id)
+    saver = MetadataSaver(base_directory="meta")
 
-    md = MetadataSaver(base_directory="meta").load_metadata(filename="videos_data")
+    md = saver.load_metadata(filename="videos_data")
 
     for url in urls:
 
@@ -58,9 +59,9 @@ async def MultiHandler(urls: list, chat_id: int):
 
         await scale_img(image_path=img_file_path, output_image_path=resized_img_path, width=width, height=height)
 
-        MetadataSaver.update_video_paths(tag=tag, video_path=video_file_path, thumb_path=resized_img_path)
+        saver.update_video_paths(tag=tag, video_path=video_file_path, thumb_path=resized_img_path)
 
-        md_upd = MetadataSaver(base_directory="meta").load_metadata(filename="videos_data")
+        md_upd = saver.load_metadata(filename="videos_data")
         updated_video_data = next((item[tag] for item in md_upd if tag in item), None)
 
         result = await upload_videos(updated_video_data)

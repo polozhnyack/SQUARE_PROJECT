@@ -65,7 +65,7 @@ class MetadataSaver:
             logger.error(f"Error loading metadata from JSON: {e}")
             return {}
         
-    def update_video_paths(tag, video_path=None, thumb_path=None, json_file="meta/videos_data.json"):
+    def update_video_paths(self, tag, video_path=None, thumb_path=None, json_file="meta/videos_data.json"):
         
         try:
             with open(json_file, 'r', encoding='utf-8') as f:
