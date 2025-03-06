@@ -16,6 +16,11 @@ RECOMEND_MSG = [
 if isinstance(RECOMEND_MSG, list):
     RECOMEND_MSG = random.choice(RECOMEND_MSG)
 
+SPAM_MESSAGE = random.choice(data["spam"])
+
+def get_spam_message():
+    return f"{random.choice(data["spam"])} @sqrhub"
+
 watermark_proposal = watermark_proposal.replace("{LUSTBOT_LINK}", LUSTBOT_LINK).replace("{water_mark}", water_mark)
 
 start_proposal_text = r"""

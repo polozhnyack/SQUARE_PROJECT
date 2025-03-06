@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import re
 
 class URLChecker:
@@ -31,9 +31,9 @@ class URLChecker:
             url_id = self._extract_id(url)
             for stored_url in self.data:
                 if stored_url == url:
-                    return False  # URL уже есть
+                    return False 
                 if url_id and self._extract_id(stored_url) == url_id:
-                    return False  # ID уже есть
+                    return False  
                 
         return url not in self.data
 
@@ -53,6 +53,8 @@ class URLChecker:
 
     def save_url(self, url: str, filename: str) -> bool:
         """Добавляет URL и сохраняет в файл."""
+        self._load_data(filename)
+
         if self.add_url(url):
             self.save_data(filename)
             return True

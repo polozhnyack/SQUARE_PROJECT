@@ -15,8 +15,6 @@ from config.config import bot
 logger = setup_logger()
 
 async def MultiHandler(urls: list, chat_id: int):
-
-
     total_links = len(urls)
     processed_links = 0
     failed_links = []
