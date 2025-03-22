@@ -11,7 +11,6 @@ from config.config import TOKEN, ADMIN, API_HASH, API_ID, ADMIN_SESSION_FILE, PH
 from db.ModuleControl import ModuleControl
 from src.services.proposal_bot import get_proposal_bot
 from config.settings import setup_logger
-from src.AnonymousSpam.SpamFunc import run_spam
 
 logger = setup_logger()
 
@@ -49,7 +48,6 @@ async def on_startup():
         logger.info("Инициализация VideoScheduler завершена, модуль включен.")
         logger.info(f"Администратор {admin_user.first_name} {admin_user.last_name or ''} добавлен в базу данных.")
 
-        # await run_spam(True)
     except Exception as e:
         logger.error(f"Не удалось добавить администратора в базу данных: {e}")
 

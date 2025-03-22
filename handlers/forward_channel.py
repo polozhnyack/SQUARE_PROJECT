@@ -71,17 +71,13 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
                     file_id = obj.animation.file_id
                     media_group.append(InputMediaAnimation(media=file_id, caption="", parse_mode=parse_mode))
 
+            md_text = media_group_text_cache.get(media_group_id, "Default text after media group")
+
+            if md_text:
+                media_group[-1].caption = md_text + f"\n\n{water_mark}"
+
             if media_group:
                 await bot.send_media_group(CHANNEL_ID, media_group)
-
-            md_text = media_group_text_cache.get(media_group_id, "Default text after media group")
-            
-            if md_text:
-                await bot.send_message(
-                    CHANNEL_ID,
-                    md_text,
-                    parse_mode=parse_mode
-                )
 
             del media_groups_cache[media_group_id]
             del media_group_text_cache[media_group_id]
