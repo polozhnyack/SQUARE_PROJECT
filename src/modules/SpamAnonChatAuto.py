@@ -115,11 +115,3 @@ async def spam():
 
     logger.info("Bot started. Listening for incoming messages...")
     await client.run_until_disconnected()
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(spam())
-    except KeyboardInterrupt:
-        logger.info("Bot stopped manually.")
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
