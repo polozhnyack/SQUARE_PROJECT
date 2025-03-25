@@ -18,6 +18,8 @@ CHANNEL = os.getenv('CHANNEL')
 PHONE = os.getenv('PHONE')
 LUSTBOT_LINK = os.getenv('LUSTBOT_LINK')
 
+TGSTAT = os.getenv('TGSTAT')
+
 ADMIN_SESSION_FILE = "userbot.session"
 PARSE_MODE = "MarkdownV2"
 

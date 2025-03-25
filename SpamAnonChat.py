@@ -10,11 +10,17 @@ from aiogram import Bot
 
 logger = setup_logger()
 
-target_bot_id = 825312679
+# target_bot_id = 825312679
+target_bot_id = "chatbot"
+
+U_E_API_ID = '25769248'
+U_E_API_HASH = '36f189172be0cbabf8fcb66571842f54'
 
 client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
+# client = TelegramClient("user_U_E.sesion", U_E_API_ID, U_E_API_HASH, system_version="4.16.30-vxCUSTOM")
 
 is_waiting_next = False 
+
 
 async def notify_admins(message_admins):
     from db.db import Database
@@ -71,9 +77,20 @@ async def handle_new_user(event):
     await asyncio.sleep(2)
     await send_next_command(bot_id=target_bot_id)
 
+    max_send_message = 15
+
     new_user_counter += 1
-    if new_user_counter >= 10:
-        logger.info("10 new users processed. Disconnecting client.")
+    logger.info(f"{new_user_counter} sent messages")
+
+    if new_user_counter >= max_send_message:
+        logger.info(f"{max_send_message} new users processed. Disconnecting client.")
+        await asyncio.sleep(3)
+        text = get_spam_message()
+        await send_text(bot_id=target_bot_id, message=text)
+
+        await asyncio.sleep(2)
+
+        await send_text(bot_id=target_bot_id, message='/stop')
         await client.disconnect()
 
 
@@ -109,7 +126,8 @@ async def handle_ban(event):
 
 
 async def spam():
-    await client.start(PHONE)
+    # await client.start(PHONE)
+    await client.start()
     await send_search(target_bot_id)
 
 
