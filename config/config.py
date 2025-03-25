@@ -6,7 +6,7 @@ from aiogram import Bot
 load_dotenv()
 
 BASE_URL_SSLKN = 'https://ww.sosalkino.tube/'
-BASE_URL_P365 = 'http://1porno365.net/'
+BASE_URL_P365 = 'http://2porno365.net/'
 
 TOKEN = os.getenv('TOKEN')
 PROPOSAL_BOT_TOKEN = os.getenv('PROPOSAL_BOT_TOKEN')

@@ -32,7 +32,7 @@ async def get_video_info(video_path):
     
     return width, height, duration
 
-async def check_duration(time_str: str) -> bool:
+def check_duration(time_str: str) -> bool:
     reference_time = timedelta(minutes=8)
     
     parts = list(map(int, time_str.split(':')))

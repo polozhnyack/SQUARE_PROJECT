@@ -3,6 +3,8 @@ import re
 from src.utils.find_tags import fetch_tags
 from config.config import TAGS_JSON
 import json
+import asyncio
+
 
 class Locators:
     def __init__(self, html):
@@ -29,7 +31,8 @@ class Locators:
                 "video_url": video_block.find('video', class_='fp-engine').get('src') if video_block.find('video', class_='fp-engine') else None, 
                 "img_url": video_block.find('img').get('src') if video_block.find('img') else None, 
                 "title": self.soup.find('div', class_='title-video').get_text(strip=True) if self.soup.find('div', class_='title-video') else "Untitled Video", 
-                "tags": fetch_tags(self.html, TAGS_JSON.get("sosalkino"))
+                "tags": fetch_tags(self.html, TAGS_JSON.get("sosalkino")),
+                "duration": video_block.find('em', class_='fp-duration').text
                 }
     
     def xvideosLocators(self, url):

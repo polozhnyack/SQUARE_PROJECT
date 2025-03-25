@@ -66,6 +66,15 @@ async def send_next_command(bot_id):
     except Exception as e:
         logger.error(f"Error sending /next command to bot {bot_id}: {e}")
 
+
+@client.on(events.NewMessage(pattern="VIP partner found 💎", from_users=target_bot_id))
+async def skip_vip(event):
+    await send_text(bot_id=target_bot_id, message='/stop')
+    await asyncio.sleep(20)
+
+    await send_search(target_bot_id)
+
+
 new_user_counter = 0 
 
 @client.on(events.NewMessage(pattern="Partner found 😺", from_users=target_bot_id))

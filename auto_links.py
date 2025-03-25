@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from config.config import BASE_URL_SSLKN, BASE_URL_P365
 from src.utils.urlchek import URLChecker
-# from src.services.sosalkino import sosalkino
 from src.modules.fetcher import SeleniumFetcher
 
 from concurrent.futures import ThreadPoolExecutor
@@ -60,9 +59,7 @@ def fetch_html_parallel(urls):
         htmls = list(executor.map(fetcher.fetch_html, urls))
     return htmls
 
-async def autoposting():
-
-
+async def autoposting() -> list[str]:
     urls = [BASE_URL_P365, BASE_URL_SSLKN]
 
     html_365, html_sslkn = await asyncio.to_thread(fetch_html_parallel, urls)
@@ -76,7 +73,7 @@ async def autoposting():
     content = []
 
     for link in all_links:
-        if "sslkn" in link:
+        if "sosalkino" in link:
             if checker.check_url(link, filename='JSON/sslkn.json'):
                 content.append(link)
             else:
