@@ -11,7 +11,7 @@ water_mark = data['watermark']
 watermark_proposal = data['watermark_proposal']
 
 RECOMEND_MSG = [
-    f"__**{random.choice(data["recommendation"]).upper()}**__\n\n__**FORWARD THIS POST OR COPY THE LINK FROM THE BIO**__"
+    f"__**{random.choice(data["recommendation"]).upper()}**__\n\n__**INVITE TO BIO.**__"
 ]
 if isinstance(RECOMEND_MSG, list):
     RECOMEND_MSG = random.choice(RECOMEND_MSG)

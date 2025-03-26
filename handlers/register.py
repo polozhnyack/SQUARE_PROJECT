@@ -50,7 +50,7 @@ def register_handlers(dp: Dispatcher):
     router.message.register(status_spam, Command(commands=['spam']))
     router.callback_query.register(edit_status_spam, lambda c: c.data and c.data.startswith('spam_status_'))
 
-    router.message.register(channel_stats, Command(commands=['stats']))
+    router.message.register(channel_stats, Command(commands=['stat']))
 
     router.chat_join_request.register(join_member)
     

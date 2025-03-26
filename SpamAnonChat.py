@@ -86,7 +86,7 @@ async def handle_new_user(event):
     await asyncio.sleep(2)
     await send_next_command(bot_id=target_bot_id)
 
-    max_send_message = 15
+    max_send_message = 20
 
     new_user_counter += 1
     logger.info(f"{new_user_counter} sent messages")

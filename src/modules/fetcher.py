@@ -77,23 +77,6 @@ class SeleniumFetcher:
                     logger.info(f"Parsing {url} (tag: {tag})")
 
                     dict = Locators(html).Locator(url)
-
-                    duration_check = check_duration(dict.get("duration"))
-                    if not duration_check:
-                        await bot.send_message(
-                            chat_id=chat_id,
-                            text=(
-                                f"⚠️ <b>Видео не соответствует требованиям!</b>\n\n"
-                                f"🔗 {url}\n\n"
-                                f"⏳ Минимальная продолжительность: <b>8:00</b>\n"
-                                f"❌ Видео короче указанного времени."
-                            ),
-                            parse_mode="HTML",
-                            disable_web_page_preview=True
-                        )
-                        logger.info(f"Video {url} was missing less than 8 minutes")
-                        continue
-                    
                     
                     title = dict.get("title")
                     tags = dict.get("tags")
