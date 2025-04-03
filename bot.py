@@ -31,7 +31,7 @@ if not os.path.exists(ADMIN_SESSION_FILE):
     logger.info("Файл сессии успешно создан.")
 
 async def on_startup():
-    logger.info("Функция on_startup вызвана")
+    logger.info("Функция on_startup вызвана.")
     try:
         db = Database() 
         mc = ModuleControl()
