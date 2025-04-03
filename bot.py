@@ -3,7 +3,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from telethon import TelegramClient
 
-
 import os
 
 from handlers.register import register_handlers
@@ -22,14 +21,14 @@ dp = Dispatcher(storage=storage)
 
 proposal_dp, proposal_bot = get_proposal_bot()
 
-# if not os.path.exists(ADMIN_SESSION_FILE):
-#     logger.info("Файл сессии отсутствует, создаем новую сессию...")
-#     client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, PHONE, system_version="4.16.30-vxCUSTOM")
-#     async def create_session():
-#         await client.start()
-#         await client.disconnect()
-#     asyncio.run(create_session())
-#     logger.info("Файл сессии успешно создан.")
+if not os.path.exists(ADMIN_SESSION_FILE):
+    logger.info("Файл сессии отсутствует, создаем новую сессию...")
+    client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, PHONE, system_version="4.16.30-vxCUSTOM")
+    async def create_session():
+        await client.start()
+        await client.disconnect()
+    asyncio.run(create_session())
+    logger.info("Файл сессии успешно создан.")
 
 async def on_startup():
     logger.info("Функция on_startup вызвана")

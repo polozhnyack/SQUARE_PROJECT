@@ -16,8 +16,8 @@ target_bot_id = "chatbot"
 U_E_API_ID = '25769248'
 U_E_API_HASH = '36f189172be0cbabf8fcb66571842f54'
 
-client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
-# client = TelegramClient("user_U_E.sesion", U_E_API_ID, U_E_API_HASH, system_version="4.16.30-vxCUSTOM")
+# client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
+client = TelegramClient("user_U_E.sesion", U_E_API_ID, U_E_API_HASH, system_version="4.16.30-vxCUSTOM")
 
 is_waiting_next = False 
 
