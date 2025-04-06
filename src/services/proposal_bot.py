@@ -47,11 +47,14 @@ def is_user_banned(user_id):
 # Обработчик команды /start
 @proposal_router.message(Command("start"))
 async def start_handler(message: Message):
-    logger.info(f"Handling /start command for user {message.from_user.id}.")
-    await message.answer(f"{start_proposal_text}", parse_mode=PARSE_MODE)
+    try:
+        logger.info(f"Handling /start command for user {message.from_user.id}.")
+        await message.answer(f"{start_proposal_text}", parse_mode=PARSE_MODE)
 
-    await proposal_bot.send_message(chat_id=ADMIN_ID,text=f"Пользователь: @{message.from_user.username} (ID: {message.from_user.id}) нажал /start" )
-    logger.info(f"Sent start message to user {message.from_user.id}.")
+        await proposal_bot.send_message(chat_id=ADMIN_ID,text=f"Пользователь: @{message.from_user.username} (ID: {message.from_user.id}) нажал /start" )
+        logger.info(f"Sent start message to user {message.from_user.id}.")
+    except Exception as e:
+        logger.error(f"User blocked bot: {e}")
 
 
 messages_data = {}
