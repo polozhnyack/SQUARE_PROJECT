@@ -33,10 +33,17 @@ def save_image_to_disk(img_data: bytes, file_name: str) -> str:
         handler.write(img_data)
     return file_name
 
+def escape_markdown_v2(text: str) -> str:
+    """
+    Escapes special characters for MarkdownV2 in Telegram.
+    """
+    special_chars = r"_*[]()~`>#+-=|{}.!"
+    return ''.join(f"\\{char}" if char in special_chars else char for char in text)
+
 def reddit_meme():
     meme_datas = []
     for sub in subreddits:
-        for post in reddit.subreddit(sub).hot(limit=3):
+        for post in reddit.subreddit(sub).hot(limit=1):
             if post.url.endswith((".jpg", ".jpeg", ".png")):
                 img_data = requests.get(post.url).content
                 file_name = os.path.join(save_folder, f"{post.id}.jpg")
@@ -72,7 +79,7 @@ async def main():
         for data in meme_data:
             if data:
                 path = data.get("path")
-                caption = data.get("title") + f"\n\n {watermark_wtf}"
+                caption = escape_markdown_v2(data.get("title")) + f"\n\n {watermark_wtf}"
                 await send_photo(path, caption)
                 await asyncio.sleep(40)
             else:
