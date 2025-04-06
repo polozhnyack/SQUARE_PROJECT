@@ -19,6 +19,10 @@ from aiogram.fsm.state import State, StatesGroup
 class SendMessageFSM(StatesGroup):
     waiting_for_text = State()
 
+class ManualMessageFSM(StatesGroup):
+    waiting_for_user_id = State()
+    waiting_for_message = State()
+
 logger = setup_logger()
 
 logger.info("Initializing bot...")
@@ -54,7 +58,7 @@ async def start_handler(message: Message):
         await proposal_bot.send_message(chat_id=ADMIN_ID,text=f"Пользователь: @{message.from_user.username} (ID: {message.from_user.id}) нажал /start" )
         logger.info(f"Sent start message to user {message.from_user.id}.")
     except Exception as e:
-        logger.error(f"User blocked bot: {e}")
+        logger.error(f"Error bot: {e}")
 
 
 messages_data = {}
@@ -70,11 +74,18 @@ FORBIDDEN_WORDS = ['Cp']
 def contains_forbidden_words(text: str) -> bool:
     return any(word.lower() in text.lower() for word in FORBIDDEN_WORDS)
 
-@proposal_router.message(lambda message: message.content_type in {"text", "photo", "video", "audio", "document", "voice"}, ~StateFilter(SendMessageFSM.waiting_for_text))
+@proposal_router.message(
+    lambda message: message.content_type in {"text", "photo", "video", "audio", "document", "voice"} and not message.text.startswith("/"),
+    ~StateFilter(SendMessageFSM.waiting_for_text),
+    ~StateFilter(ManualMessageFSM.waiting_for_user_id),
+    ~StateFilter(ManualMessageFSM.waiting_for_message)
+)
 async def forward_proposal_handler(message):
     """
     Handles incoming proposals and forwards them to the admin.
-    This handler will not trigger if FSM is in SendMessageFSM.waiting_for_text state.
+    This handler will not trigger if FSM is in SendMessageFSM.waiting_for_text,
+    ManualMessageFSM.waiting_for_user_id, or ManualMessageFSM.waiting_for_message state,
+    or if the message is a command.
     """
     logger.info(f"Received message: {message.content_type} from {message.from_user.id}")
     
@@ -325,6 +336,53 @@ async def send_text_to_user(message: Message, state: FSMContext):
         await state.clear()
         logger.info("FSM state cleared.")
 
+@proposal_router.message(Command("message_to"))
+async def start_manual_message(message: Message, state: FSMContext):
+    """
+    Starts the manual message process by asking for the user ID.
+    """
+    await message.answer("✏️ Введите ID пользователя, которому хотите отправить сообщение:")
+    await state.set_state(ManualMessageFSM.waiting_for_user_id)
+    logger.info("State set to waiting_for_user_id.")
+
+@proposal_router.message(ManualMessageFSM.waiting_for_user_id)
+async def receive_user_id(message: Message, state: FSMContext):
+    """
+    Receives the user ID and asks for the message text.
+    """
+    try:
+        user_id = int(message.text)
+        await state.update_data(target_user_id=user_id)
+        await message.answer("✅ ID пользователя сохранен. Теперь введите сообщение, которое хотите отправить:")
+        await state.set_state(ManualMessageFSM.waiting_for_message)
+        logger.info(f"User ID {user_id} saved. State set to waiting_for_message.")
+    except ValueError:
+        await message.answer("❌ Ошибка: Введите корректный числовой ID пользователя.")
+        logger.warning("Invalid user ID entered.")
+
+@proposal_router.message(ManualMessageFSM.waiting_for_message)
+async def send_manual_message(message: Message, state: FSMContext):
+    """
+    Sends the entered message to the specified user ID.
+    """
+    try:
+        data = await state.get_data()
+        user_id = data.get("target_user_id")
+
+        if not user_id:
+            await message.answer("❌ Ошибка: Не удалось определить пользователя для отправки сообщения.")
+            await state.clear()
+            return
+
+        await proposal_bot.send_message(chat_id=user_id, text=message.text)
+        await message.answer("✅ Сообщение успешно отправлено!")
+        logger.info(f"Message sent to user {user_id}: {message.text}")
+    except Exception as e:
+        logger.error(f"Error sending message to user: {e}")
+        await message.answer("❌ Не удалось отправить сообщение. Возможно, пользователь заблокировал бота.")
+    finally:
+        await state.clear()
+        logger.info("FSM state cleared for manual message.")
 
 def get_proposal_bot():
     logger.info("Returning dispatcher and bot instance.")
