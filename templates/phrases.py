@@ -9,6 +9,7 @@ with open("templates/static_text.json", "r", encoding="utf-8") as file:
 agit_text = data['agitation_text']
 water_mark = data['watermark']
 watermark_proposal = data['watermark_proposal']
+watermark_wtf = data['watermark_wtf']
 
 RECOMEND_MSG = [
     f"__**{random.choice(data["recommendation"]).upper()}**__\n\n__**INVITE TO BIO.**__"

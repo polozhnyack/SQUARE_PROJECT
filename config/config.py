@@ -18,6 +18,8 @@ CHANNEL = os.getenv('CHANNEL')
 PHONE = os.getenv('PHONE')
 LUSTBOT_LINK = os.getenv('LUSTBOT_LINK')
 
+SQRWTF = os.getenv('SQUAREWTF_ID')
+
 TGSTAT = os.getenv('TGSTAT')
 
 ADMIN_SESSION_FILE = "userbot.session"
@@ -37,6 +39,6 @@ SAVED_URLS_JSON = {
 
 emodji =  ['❤️', '✨','🌟','⭐','🔥','⚡','🌙','☀️','💥','💣','😈', '😘','🥰','😏','😍','🤤','💫','🍒','🖤','🥵','😋','😀','😃','❤️', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟','🤭','😄', '🌚','👌','👍', '🤩', '🍆', '💦', '🍑', '👀', '🍓', '💋', '🔞','💯', '❌','⭕️','💢']
 
-DELAY_EDIT_MESSAGE = 10
+DELAY_EDIT_MESSAGE = 3
 
 bot = Bot(token=TOKEN)

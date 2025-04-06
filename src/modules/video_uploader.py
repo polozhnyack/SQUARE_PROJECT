@@ -8,9 +8,7 @@ from datetime import datetime
 from telethon.tl.types import DocumentAttributeVideo
 from telethon import TelegramClient
 
-
 logger = setup_logger()
-
 
 async def upload_videos(video_info: dict): 
 

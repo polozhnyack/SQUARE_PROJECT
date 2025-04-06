@@ -1,6 +1,7 @@
 from telethon import TelegramClient, events
 import asyncio
 import logging
+import random
 
 from config.config import API_HASH, API_ID, PHONE, TOKEN, ADMIN_SESSION_FILE
 from templates.phrases import get_spam_message
@@ -76,6 +77,7 @@ async def skip_vip(event):
 
 
 new_user_counter = 0 
+max_send_message = random.randint(1, 20)
 
 @client.on(events.NewMessage(pattern="Partner found 😺", from_users=target_bot_id))
 async def handle_new_user(event):
@@ -86,7 +88,7 @@ async def handle_new_user(event):
     await asyncio.sleep(2)
     await send_next_command(bot_id=target_bot_id)
 
-    max_send_message = 20
+    logger.info(f"messages: {max_send_message}")
 
     new_user_counter += 1
     logger.info(f"{new_user_counter} sent messages")
@@ -109,7 +111,6 @@ async def handle_leave(event):
 
     if not is_waiting_next:
         logger.info("AnonUser leave the chat")
-        # await send_next_command(bot_id=target_bot_id)
         is_waiting_next = True
         
         await asyncio.sleep(5)  
