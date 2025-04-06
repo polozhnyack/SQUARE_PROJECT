@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, CallbackQuery, Chat
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
 
@@ -12,6 +12,13 @@ from templates.phrases import water_mark, start_proposal_text, watermark_proposa
 import sqlite3
 import re
 
+from aiogram.fsm.context import FSMContext
+
+from aiogram.fsm.state import State, StatesGroup
+
+class SendMessageFSM(StatesGroup):
+    waiting_for_text = State()
+
 logger = setup_logger()
 
 logger.info("Initializing bot...")
@@ -19,7 +26,7 @@ logger.info("Initializing bot...")
 proposal_bot = Bot(token=PROPOSAL_BOT_TOKEN)
 proposal_storage = MemoryStorage()
 proposal_router = Router()
-proposal_dp = Dispatcher(storage=proposal_storage)
+proposal_dp = Dispatcher(storage=proposal_storage, bot=proposal_bot)
 
 proposal_dp.include_router(proposal_router)
 
@@ -28,7 +35,6 @@ logger.info("Bot initialized.")
 FORBIDDEN_WORDS = ['Cp']
 
 
-# Проверка, забанен ли пользователь
 def is_user_banned(user_id):
     logger.info(f"Checking if user {user_id} is banned.")
     with sqlite3.connect('users.db') as conn:
@@ -61,42 +67,15 @@ FORBIDDEN_WORDS = ['Cp']
 def contains_forbidden_words(text: str) -> bool:
     return any(word.lower() in text.lower() for word in FORBIDDEN_WORDS)
 
-@proposal_router.message(lambda message: message.content_type in {"text", "photo", "video", "audio", "document", "voice"})
+@proposal_router.message(lambda message: message.content_type in {"text", "photo", "video", "audio", "document", "voice"}, ~StateFilter(SendMessageFSM.waiting_for_text))
 async def forward_proposal_handler(message):
+    """
+    Handles incoming proposals and forwards them to the admin.
+    This handler will not trigger if FSM is in SendMessageFSM.waiting_for_text state.
+    """
     logger.info(f"Received message: {message.content_type} from {message.from_user.id}")
     
     try:
-        if message.from_user.id == ADMIN_ID:
-            logger.info(f"Message from admin {message.from_user.id}, auto-forwarding to channel.")
-            
-            watermark = watermark_proposal
-            if message.text:
-                logger.info("Forwarding text message with watermark.")
-                await proposal_bot.send_message(
-                    chat_id=CHANNEL_ID,
-                    parse_mode="Markdown",
-                    text=f"{message.md_text}{watermark}"
-                )
-            elif message.photo:
-                logger.info("Forwarding photo message with watermark.")
-                await proposal_bot.send_photo(
-                    chat_id=CHANNEL_ID,
-                    photo=message.photo[-1].file_id,
-                    parse_mode="MarkdownV2",
-                    caption=f"{message.caption}{watermark}" if message.caption else watermark
-                )
-            elif message.video:
-                logger.info("Forwarding video message with watermark.")
-                await proposal_bot.send_video(
-                    chat_id=CHANNEL_ID,
-                    video=message.video.file_id,
-                    parse_mode="MarkdownV2",
-                    caption=f"{message.caption}{watermark}" if message.caption else watermark
-                )
-            
-            await message.reply("✅ Your message has been automatically published in the channel.")
-            return
-
         if message.text and contains_forbidden_words(message.text):
             logger.warning(f"User {message.from_user.id} used forbidden words. Banning user.")
             
@@ -161,7 +140,6 @@ async def forward_proposal_handler(message):
                 message=admin_message.message_id,
             )
         )
-        await message.reply("✅ Your proposal has been sent.")
         
     except Exception as e:
         logger.error(f"Error while processing the message from user {message.from_user.id}: {e}")
@@ -237,6 +215,7 @@ async def reject_post(call: CallbackQuery):
             text="Your proposal has been rejected."
         )
 
+
         await proposal_bot.delete_messages(
             chat_id=call.message.chat.id,
             message_ids=[original_message_id2, call.message.message_id]
@@ -291,6 +270,58 @@ async def unban_user(call: CallbackQuery):
 
     await call.answer(f"User {username} has been unbanned.")
     await call.message.reply(f"User @{username} has been unbanned and can make suggestions again.")
+
+
+@proposal_router.callback_query(lambda c: c.data.startswith("send_message_to_"))
+async def ask_for_message_text(call: CallbackQuery, state: FSMContext):
+    """
+    Initiates the process of sending a message to a user.
+    """
+    try:
+        user_id = int(call.data.split("_")[3])
+
+        await state.update_data(target_user_id=user_id)
+        logger.info(f"State updated with target_user_id: {user_id}")
+
+
+        await call.message.answer("✏️ Введите сообщение, которое хотите отправить пользователю:")
+        await call.answer()
+
+        await state.set_state(SendMessageFSM.waiting_for_text)
+        logger.info(f"State set to: {await state.get_state()}")
+    except IndexError:
+        logger.error(f"Invalid callback data format: {call.data}")
+        await call.answer("Ошибка: Неверный формат данных.")
+    except Exception as e:
+        logger.error(f"Error in ask_for_message_text: {e}")
+        await call.answer("Ошибка при попытке начать отправку сообщения.")
+
+@proposal_router.message(SendMessageFSM.waiting_for_text)
+async def send_text_to_user(message: Message, state: FSMContext):
+    """
+    Sends the entered text to the target user.
+    """
+    try:
+        logger.debug(f"Received message in FSM state: {message.text}")
+        data = await state.get_data()
+        user_id = data.get("target_user_id")
+
+        if not user_id:
+            logger.error("Target user ID not found in FSM state.")
+            await message.answer("❌ Ошибка: Не удалось определить пользователя для отправки сообщения.")
+            await state.clear()
+            return
+
+        await proposal_bot.send_message(chat_id=user_id, text=message.text)
+        await message.answer("✅ Сообщение успешно отправлено!")
+        logger.info(f"Message sent to user {user_id}: {message.text}")
+    except Exception as e:
+        logger.error(f"Error sending message to user: {e}")
+        await message.answer("❌ Не удалось отправить сообщение. Возможно, пользователь заблокировал бота.")
+    finally:
+        await state.clear()
+        logger.info("FSM state cleared.")
+
 
 def get_proposal_bot():
     logger.info("Returning dispatcher and bot instance.")

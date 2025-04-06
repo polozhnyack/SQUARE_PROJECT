@@ -85,7 +85,8 @@ def get_admin_buttons(user_id, username, message):
         buttons = [
             InlineKeyboardButton(text="🚫", callback_data=f"ban_{user_id}"),
             InlineKeyboardButton(text="✅", callback_data=f"approve_{message}_{user_id}"),
-            InlineKeyboardButton(text="❌", callback_data=f"reject_{user_id}_{message}")
+            InlineKeyboardButton(text="❌", callback_data=f"reject_{user_id}_{message}"),
+            InlineKeyboardButton(text="📩", callback_data=f"send_message_to_{user_id}")
         ]
 
         if username:

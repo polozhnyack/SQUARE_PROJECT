@@ -25,12 +25,12 @@ def get_spam_message():
 watermark_proposal = watermark_proposal.replace("{LUSTBOT_LINK}", LUSTBOT_LINK).replace("{water_mark}", water_mark)
 
 start_proposal_text = r"""
-*Hello\! 👋 Welcome to LUSTBOT 🔥\!*
+*Hello\! 👋 Welcome to SQUARETBOT 🔥\!*
 
 Here, you can:
 \- 💡 *Share your ideas or suggestions* for our project\.
 \- 📩 *Send us your content* to be featured\.
-\- 🤝 *Get in touch with the admins* for any inquiries or issues\.
+\- 🤝 *Get in touch with the admins* directly through this bot for any inquiries or issues\.
 \- ❗ *The bot will not send you any advertisements*\.
 
 Your suggestions are *anonymous*\.
@@ -40,6 +40,8 @@ However, please note that sending *prohibited or inappropriate content*:
 
 Simply type your message or attach media, and we’ll forward it as a suggestion\.
 Thank you for contributing\! 🙏
+
+Your SQUARE Team\! 💙
 """
 
 agitation_text = agit_text.format(LUSTBOT_LINK=LUSTBOT_LINK)
