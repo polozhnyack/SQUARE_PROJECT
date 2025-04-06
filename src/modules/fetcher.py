@@ -29,106 +29,98 @@ class SeleniumFetcher:
             "profile.default_content_setting_values.cookies": 2,
         })
 
+    def _initialize_driver(self):
+        """Helper method to initialize WebDriver."""
+        driver_path = ChromeDriverManager().install()
+        service = ChromeService(driver_path)
+        return webdriver.Chrome(service=service, options=self.chrome_options)
 
     def fetch_html(self, url) -> str:
         logger.info(f"Fetching HTML content from URL: {url}")
-
         try:
-            driver_path = ChromeDriverManager().install()
-            service = ChromeService(driver_path)
-            driver = webdriver.Chrome(service=service, options=self.chrome_options)
-
-            driver.get(url)
-
-            time.sleep(self.wait_time)
-
-            html = driver.page_source
+            with self._initialize_driver() as driver:
+                driver.get(url)
+                time.sleep(self.wait_time)
+                return driver.page_source
         except Exception as e:
             logger.error(f"Error while fetching HTML content: {e}")
-            html = None
-        finally:
-            driver.quit()
+            return None
 
-        return html
-    
     async def collector(self, chat_id, urls: list) -> list[dict]:
         logger.info(f"Fetching data from URLs")
 
         data = []
 
         try:
-            driver_path = ChromeDriverManager().install()
-            service = ChromeService(driver_path)
-            driver = webdriver.Chrome(service=service, options=self.chrome_options)
+            with self._initialize_driver() as driver:
+                for url in urls:
+                    driver.execute_script(f"window.open('{url}', '_blank');")
+                    time.sleep(1)
 
-            for url in urls:
-                driver.execute_script(f"window.open('{url}', '_blank');")
-                time.sleep(1)
+                for index, handle in enumerate(driver.window_handles[1:], start=1):
+                    try:
+                        driver.switch_to.window(handle)
+                        time.sleep(self.wait_time)
 
-            for index in range(1, len(driver.window_handles)):
-                try:
-                    driver.switch_to.window(driver.window_handles[index])  
-                    time.sleep(self.wait_time) 
+                        html = driver.page_source
+                        url = driver.current_url
+                        tag = extract_segment(url)
 
-                    html = driver.page_source
-                    url = driver.current_url
-                    tag = extract_segment(url)
+                        logger.info(f"Parsing {url} (tag: {tag})")
 
-                    logger.info(f"Parsing {url} (tag: {tag})")
+                        dict = Locators(html).Locator(url)
+                        
+                        title = dict.get("title")
+                        tags = dict.get("tags")
+                        video_url = dict.get("video_url")
+                        img_url = dict.get("img_url")
 
-                    dict = Locators(html).Locator(url)
-                    
-                    title = dict.get("title")
-                    tags = dict.get("tags")
-                    video_url = dict.get("video_url")
-                    img_url = dict.get("img_url")
+                        tags_str = ", ".join(tags)
 
+                        if dict.get("domain") in {"xvideos"}:
+                            translated_title, tags = title, tags_str
+                        else:
+                            translated_title, translated_tags = await translator(title), await translator(tags_str)
+                            tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
 
-                    tags_str = ", ".join(tags)
+                        width, height, size, duration = get_video_details(video_url)
 
-                    if dict.get("domain") in {"xvideos"}:
-                        translated_title, tags = title, tags_str
-                    else:
-                        translated_title, translated_tags = await translator(title), await translator(tags_str)
-                        tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
-                    
-                    width, height, size, duration = get_video_details(video_url)
+                        if duration < 482:
+                            logger.info(f"Skipping video {url} due to short duration: {duration} seconds")
+                            continue
 
-                    emodji_start, emodji_end = generate_emojis()
+                        emodji_start, emodji_end = generate_emojis()
 
-                    text = f"{''.join(emodji_start)}**{translated_title.upper()}**{''.join(emodji_end)}\n\n{tags}"
+                        text = f"{''.join(emodji_start)}**{translated_title.upper()}**{''.join(emodji_end)}\n\n{tags}"
 
-                    data.append({
-                        tag:{
-                            "url": url,
-                            "title": text,
-                            "content": {
-                                "video_url": video_url, 
-                                "img_url": img_url,
-                            },
-                            "details": {
-                                "width" : width,
-                                "height": height,
-                                "size": size,
-                                "duration": duration,
-                            },
-                            "path":{
-                                "video": None,
-                                "thumb": None
-                            },
-                            "channel": CHANNEL,
-                            "chat": chat_id
-                        }
-                    })
-                except Exception as e:
-                    logger.error(f"Error while processing {url} (tag: {tag}): {e}")
-                    continue
+                        data.append({
+                            tag:{
+                                "url": url,
+                                "title": text,
+                                "content": {
+                                    "video_url": video_url, 
+                                    "img_url": img_url,
+                                },
+                                "details": {
+                                    "width" : width,
+                                    "height": height,
+                                    "size": size,
+                                    "duration": duration,
+                                },
+                                "path":{
+                                    "video": None,
+                                    "thumb": None
+                                },
+                                "channel": CHANNEL,
+                                "chat": chat_id
+                            }
+                        })
+                    except Exception as e:
+                        logger.error(f"Error while processing {url} (tag: {tag}): {e}")
+                        continue
 
             logger.info(f"len data: {len(data)}")
             return MetadataSaver(base_directory="meta").save_metadata(filename='videos_data', metadata=data)
         except Exception as e:
             logger.error(f"Error during fetching: {e}")
             return []
-        finally:
-            driver.quit()
-            logger.info("WebDriver has quit.")

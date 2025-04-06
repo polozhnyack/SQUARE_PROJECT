@@ -36,7 +36,7 @@ def save_image_to_disk(img_data: bytes, file_name: str) -> str:
 def reddit_meme():
     meme_datas = []
     for sub in subreddits:
-        for post in reddit.subreddit(sub).hot(limit=1):
+        for post in reddit.subreddit(sub).hot(limit=3):
             if post.url.endswith((".jpg", ".jpeg", ".png")):
                 img_data = requests.get(post.url).content
                 file_name = os.path.join(save_folder, f"{post.id}.jpg")
