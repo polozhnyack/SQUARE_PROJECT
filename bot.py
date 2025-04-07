@@ -1,16 +1,14 @@
 import asyncio
+import os
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from telethon import TelegramClient
-
-import os
-
-from handlers.register import register_handlers
-from db.db import Database
 from config.config import TOKEN, ADMIN, API_HASH, API_ID, ADMIN_SESSION_FILE, PHONE
-from db.ModuleControl import ModuleControl
-from src.services.proposal_bot import get_proposal_bot
 from config.settings import setup_logger
+from db.db import Database
+from db.ModuleControl import ModuleControl
+from handlers.register import register_handlers
+from src.services.proposal_bot import get_proposal_bot
+from telethon import TelegramClient
 
 logger = setup_logger()
 
