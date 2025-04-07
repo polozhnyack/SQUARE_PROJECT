@@ -30,7 +30,7 @@ LOGGING = {
             'style': '{', 
         },
         'colored': {
-            '()': ColoredFormatter,  # 👈 Ссылаемся на кастомный класс
+            '()': ColoredFormatter,
             'format': '{levelname} {asctime} {message}',
             'style': '{',
         },

@@ -67,7 +67,7 @@ class MediaDownloader:
             if current_size > 0:
                 headers['Range'] = f"bytes={current_size}-"
 
-            timeout = aiohttp.ClientTimeout(total=60, connect=30, sock_connect=30, sock_read=30)
+            timeout = aiohttp.ClientTimeout(total=600, connect=30, sock_connect=30, sock_read=30)
             
             async with session.get(url, headers=headers, timeout=timeout) as response:
                 if response.status == 200 or response.status == 206:

@@ -35,6 +35,9 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                         if is_video_valid(video_path):
                             await upload_videos(video_info=video_data)
                             logger.info(f"Successfully uploaded video: {url}")
+                        elif video_path is None:
+                            pass
+
                         else:
                             logger.warning(f"Файл не прошел проверку на целостность. Путь: {video_path}")
                     else:

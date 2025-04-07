@@ -8,25 +8,27 @@ from config.sites import SITE_HANDLERS
 from src.utils.urlchek import URLChecker
 from src.modules.media_selector import selector
 from templates.phrases import RECOMEND_MSG
+from typing import Optional
 
 from config.config import bot
 
 
 logger = setup_logger()
 
-async def MultiHandler(urls: list, chat_id: int):
+async def MultiHandler(urls: list[str], chat_id: int, metadata: Optional[dict] = None) -> int:
     total_links = len(urls)
     processed_links = 0
     failed_links = []
 
     progress_message = await bot.send_message(chat_id, _get_progress_message(processed_links, total_links))
 
-    fetcher = SeleniumFetcher()
     checker = URLChecker()
     saver = MetadataSaver(base_directory="meta")
 
-    await fetcher.collector(urls=urls, chat_id=chat_id)
-    metadata = saver.load_metadata(filename="videos_data")
+    if metadata is None:
+        fetcher = SeleniumFetcher()
+        await fetcher.collector(urls=urls, chat_id=chat_id)
+        metadata = saver.load_metadata(filename="videos_data")
 
     for url in urls:
         await progress_message.edit_text(
@@ -34,27 +36,12 @@ async def MultiHandler(urls: list, chat_id: int):
             disable_web_page_preview=True,
             parse_mode='HTML'
         )
-
-        tag = extract_segment(url)
-        video_data = _get_video_data(metadata, tag)
-        if not video_data:
-            logger.warning(f"No metadata found for tag: {tag}")
-            continue
-
-        video_file_path, resized_img_path = await _process_media(video_data, tag, chat_id, saver)
-        if not video_file_path or not resized_img_path:
-            failed_links.append(url)
-            continue
-
-        updated_metadata = saver.load_metadata(filename="videos_data")
-        updated_video_data = _get_video_data(updated_metadata, tag)
-
-        result = await upload_videos(updated_video_data)
-        if not _handle_upload_result(result, url, checker):
-            failed_links.append(url)
-        else:
+        ok = await _handle_single_url(url, metadata, chat_id, checker, saver)
+        if ok:
             processed_links += 1
-
+        else:
+            failed_links.append(url)
+            logger.error(f"Failed to process URL: {url}")
         await clear_directory("media/video")
 
     await _finalize_progress(progress_message, processed_links, failed_links)
@@ -65,6 +52,19 @@ async def MultiHandler(urls: list, chat_id: int):
 
     return processed_links
 
+async def _handle_single_url(url: str, metadata: dict, chat_id: int, checker, saver) -> bool:
+    tag = extract_segment(url)
+    video_data = _get_video_data(metadata, tag)
+    if not video_data:
+        logger.warning(f"No metadata found for tag: {tag}")
+        return False
+
+    video_file_path, resized_img_path = await _process_media(video_data, tag, chat_id, saver)
+    if not video_file_path or not resized_img_path:
+        return False
+
+    result = await upload_videos(video_data)
+    return _handle_upload_result(result, url, checker)
 
 def _get_progress_message(processed_links, total_links, current_url=None):
     if current_url:
