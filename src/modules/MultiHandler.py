@@ -12,7 +12,6 @@ from typing import Optional
 
 from config.config import bot
 
-
 logger = setup_logger()
 
 async def MultiHandler(urls: list[str], chat_id: int, metadata: Optional[dict] = None) -> int:
@@ -45,7 +44,7 @@ async def MultiHandler(urls: list[str], chat_id: int, metadata: Optional[dict] =
         await clear_directory("media/video")
 
     await _finalize_progress(progress_message, processed_links, failed_links)
-    await clear_directory("meta")
+    # await clear_directory("meta")
 
     if processed_links > 20:
         await selector(TEXT=RECOMEND_MSG)
@@ -77,10 +76,15 @@ def _get_progress_message(processed_links, total_links, current_url=None):
 
 
 def _get_video_data(metadata, tag):
-    return next((item[tag] for item in metadata if tag in item), None)
+    if isinstance(metadata, dict):
+        return metadata.get(tag)
+    elif isinstance(metadata, list):
+        return next((item[tag] for item in metadata if tag in item), None)
+    return None
 
 
 async def _process_media(video_data, tag, chat_id, saver):
+    logger.debug(f"metadata _process_media: {video_data}")
     video_url = video_data["content"].get("video_url")
     img_url = video_data["content"].get("img_url")
     width, height = video_data["details"].get("width"), video_data["details"].get("height")

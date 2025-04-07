@@ -146,7 +146,7 @@ async def find_metadata(url: str):
 
             for video_info in data:
                 if tag in video_info and video_info[tag].get('url') == url:
-                    return video_info[tag]
+                    return video_info
 
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON from file {json_file.name}: {e}")

@@ -29,15 +29,20 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                 if cheсker.check_url(url, filename=json_file) is True:
                     logger.info(f"URL {url} is new, fetching metadata...")
                     video_data = await find_metadata(url)
+
                     if video_data is not None:
-                        logger.info(f"Video data found: {video_data}")
-                        video_path = video_data["path"].get("video")
+                        tag, video_info = next(iter(video_data.items()))
+                        logger.info(f"Video data found: {video_info}")
+
+                        video_path = video_info.get("path", {}).get("video")
+                        
                         if is_video_valid(video_path):
-                            await upload_videos(video_info=video_data)
+                            await upload_videos(video_info=video_info)
                             logger.info(f"Successfully uploaded video: {url}")
                         elif video_path is None:
-                            pass
-
+                            logger.debug(f"Video path is None. Full data: {video_info}")
+                            await MultiHandler([url], message.chat.id, metadata=video_data)
+                            logger.info(f"Video path is None. Passed metadata to MultiHandler for URL: {url}")
                         else:
                             logger.warning(f"Файл не прошел проверку на целостность. Путь: {video_path}")
                     else:
