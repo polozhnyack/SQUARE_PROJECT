@@ -1,6 +1,10 @@
 from bs4 import BeautifulSoup
 import json
 
+from config.settings import setup_logger
+
+logger = setup_logger()
+
 def fetch_tags(html, json_file_path):
     tag_replacements = {
         "Зрелые, милфы": "Milfs",
@@ -19,7 +23,7 @@ def fetch_tags(html, json_file_path):
         container = container.find('div', class_='row')
 
     if not container:
-        print("Контейнер с классом 'row' не найден.")
+        logger.error("Контейнер с классом 'row' не найден.")
         return []
 
     links = container.find_all('a', class_='row-item')
