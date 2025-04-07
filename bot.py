@@ -10,7 +10,6 @@ from db.db import Database
 from config.config import TOKEN, ADMIN, API_HASH, API_ID, ADMIN_SESSION_FILE, PHONE
 from db.ModuleControl import ModuleControl
 from src.services.proposal_bot import get_proposal_bot
-from src.modules.Shedule.sheduler import start_scheduler
 from config.settings import setup_logger
 
 logger = setup_logger()
@@ -63,7 +62,6 @@ async def main():
     await asyncio.gather(
         dp.start_polling(bot, skip_updates=True),
         proposal_dp.start_polling(proposal_bot, skip_updates=True),
-        start_scheduler()
     )
 
 if __name__ == '__main__':
