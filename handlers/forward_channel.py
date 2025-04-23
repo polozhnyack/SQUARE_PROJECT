@@ -113,7 +113,8 @@ async def forward_to_channel(message: types.Message, state: FSMContext):
                     CHANNEL_ID,
                     message.video.file_id,
                     caption=caption,
-                    parse_mode=PARSE_MODE,  
+                    parse_mode=PARSE_MODE,
+                    disable_notification=True
                 )
             except exceptions.TelegramAPIError as e:
                 await bot.send_message(message.from_user.id, f"TelegramAPIError  error: {e}")

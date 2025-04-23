@@ -29,6 +29,8 @@ async def MultiHandler(urls: list[str], chat_id: int, metadata: Optional[dict] =
         await fetcher.collector(urls=urls, chat_id=chat_id)
         metadata = saver.load_metadata(filename="videos_data")
 
+    logger.info(f"metadata: {metadata}")
+
     for url in urls:
         await progress_message.edit_text(
             _get_progress_message(processed_links, total_links, url),
@@ -44,7 +46,7 @@ async def MultiHandler(urls: list[str], chat_id: int, metadata: Optional[dict] =
         await clear_directory("media/video")
 
     await _finalize_progress(progress_message, processed_links, failed_links)
-    # await clear_directory("meta")
+    await clear_directory("meta")
 
     if processed_links > 20:
         await selector(TEXT=RECOMEND_MSG)
@@ -57,12 +59,25 @@ async def _handle_single_url(url: str, metadata: dict, chat_id: int, checker, sa
     if not video_data:
         logger.warning(f"No metadata found for tag: {tag}")
         return False
+    logger.info(video_data)
 
     video_file_path, resized_img_path = await _process_media(video_data, tag, chat_id, saver)
+    logger.info(f"Пути загруженных файлов: {video_file_path}\n{resized_img_path}")
     if not video_file_path or not resized_img_path:
         return False
+    
+    video_data2 = saver.load_metadata("videos_data")
+    logger.info(f"video_data2: {video_data2}")
+    if not video_data2:
+        logger.warning("No metadata found after processing.")
+        return False
 
-    result = await upload_videos(video_data)
+
+    result_data = _get_video_data(metadata=video_data2, tag=tag)
+    
+    logger.info(f"result_data: {result_data}")
+
+    result = await upload_videos(result_data)
     return _handle_upload_result(result, url, checker)
 
 def _get_progress_message(processed_links, total_links, current_url=None):
@@ -84,7 +99,7 @@ def _get_video_data(metadata, tag):
 
 
 async def _process_media(video_data, tag, chat_id, saver):
-    logger.debug(f"metadata _process_media: {video_data}")
+    logger.info(f"metadata _process_media: {video_data}")
     video_url = video_data["content"].get("video_url")
     img_url = video_data["content"].get("img_url")
     width, height = video_data["details"].get("width"), video_data["details"].get("height")

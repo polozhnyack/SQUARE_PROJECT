@@ -77,7 +77,7 @@ async def skip_vip(event):
 
 
 new_user_counter = 0 
-max_send_message = random.randint(1, 20)
+max_send_message = random.randint(10, 20)
 
 @client.on(events.NewMessage(pattern="Partner found 😺", from_users=target_bot_id))
 async def handle_new_user(event):

@@ -100,7 +100,7 @@ class MediaDownloader:
                 return await self.download_file(session, url, file_path, description, retries - 1)
             else:
                 logger.error(f"Failed to download {description} after multiple attempts: {e}")
-                self.bot.send_message(chat_id=self.chat_id, 
+                await self.bot.send_message(chat_id=self.chat_id, 
                                     text=f"*❌ ОШИБКА ПРИ ЗАГРУЗКЕ ❌*\n{description}: {url} не было выгружено.\nОшибка: {e}",
                                     parse_mode='Markdown'
                                     )

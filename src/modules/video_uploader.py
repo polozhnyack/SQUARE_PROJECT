@@ -13,12 +13,21 @@ logger = setup_logger()
 async def upload_videos(video_info: dict): 
 
     client = TelegramClient(ADMIN_SESSION_FILE, API_ID, API_HASH)
+
     await client.start(phone=PHONE)
     progress_state = {"last_update_time": 0, "progress_message": None}
     await client.send_message(
         CHANNEL,
         "/forwardActive"
     )
+
+    logger.info(f"video_data in upload_videos: {video_info}")
+    
+    # video_entry = video_info[0]
+    # slug = next(iter(video_entry))
+    # video_info = video_entry[slug]
+
+    # video_info = next(iter(video_info.values()))
 
     async def progress_callback(current, total, chat_id):
         if progress_state["progress_message"] is None:
@@ -49,6 +58,9 @@ async def upload_videos(video_info: dict):
         url = video_info.get('url')
         channel = video_info.get('channel')
         chat = video_info.get('chat')
+
+        logger.info(f"Путь к видео: {processed_video_path}")
+        logger.info(f"Путь превью: {resized_img_path}")
 
         await client.send_file(
             channel,

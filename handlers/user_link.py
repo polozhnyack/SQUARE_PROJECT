@@ -29,7 +29,6 @@ async def handle_user_link(message: types.Message, state: FSMContext):
                 if cheсker.check_url(url, filename=json_file) is True:
                     logger.info(f"URL {url} is new, fetching metadata...")
                     video_data = await find_metadata(url)
-
                     if video_data is not None:
                         tag, video_info = next(iter(video_data.items()))
                         logger.info(f"Video data found: {video_info}")
