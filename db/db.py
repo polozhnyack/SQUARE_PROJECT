@@ -1,19 +1,10 @@
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from config.settings import setup_logger
+from db.model import *
 
 logger = setup_logger()
 
-Base = declarative_base()
-
-
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, unique=True, nullable=False)
-    first_name = Column(String)
-    last_name = Column(String)
 
 
 class Database:
@@ -25,7 +16,6 @@ class Database:
     def add_user(self, user_id, first_name, last_name):
         session = self.Session()
         try:
-            # Проверяем, есть ли уже такой пользователь
             existing_user = session.query(User).filter_by(user_id=user_id).first()
             if existing_user:
                 logger.info(f"Пользователь с ID {user_id} уже существует.")

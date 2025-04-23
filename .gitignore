@@ -15,3 +15,5 @@ users.db
 
 /logs/*
 !/logs/
+
+*.db
