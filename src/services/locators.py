@@ -2,9 +2,11 @@ from bs4 import BeautifulSoup
 import re
 from src.utils.find_tags import fetch_tags
 from config.config import TAGS_JSON
+from config.settings import setup_logger
 import json
 import asyncio
 
+logger = setup_logger()
 
 class Locators:
     def __init__(self, html):

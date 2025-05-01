@@ -69,6 +69,8 @@ class SeleniumFetcher:
                         logger.info(f"Parsing {url} (tag: {tag})")
 
                         dict = Locators(html).Locator(url)
+
+                        logger.info(dict)
                         
                         title = dict.get("title")
                         tags = dict.get("tags")
@@ -81,17 +83,29 @@ class SeleniumFetcher:
                             translated_title, tags = title, tags_str
                         else:
                             translated_title, translated_tags = await translator(title), await translator(tags_str)
+                            logger.info(translated_tags)
+                            logger.info(translated_title)
                             tags = ", ".join([f"#{tag.replace(' ', '_')}" for tag in translated_tags.split(", ")])
+                            logger.info(tags)
 
                         width, height, size, duration = get_video_details(video_url)
 
-                        if duration < 482:
-                            logger.info(f"Skipping video {url} due to short duration: {duration} seconds")
-                            continue
+                        if width and height and size:
+                            logger.info(f"Video resolution: {width}x{height}, Size: {size} bytes")
+                        else:
+                            logger.error("Failed to get video details or invalid data")
+
+                        logger.info(f"{width}, {height}, {size}")
+
+                        # if duration < 482:
+                        #     logger.info(f"Skipping video {url} due to short duration: {duration} seconds")
+                        #     continue
 
                         emodji_start, emodji_end = generate_emojis()
 
                         text = f"{''.join(emodji_start)}**{translated_title.upper()}**{''.join(emodji_end)}\n\n{tags}"
+
+                        logger.info(text)
 
                         data.append({
                             tag:{
@@ -117,6 +131,7 @@ class SeleniumFetcher:
                         })
                     except Exception as e:
                         logger.error(f"Error while processing {url} (tag: {tag}): {e}")
+                        logger.info(f"Locator returned: {dict}")
                         continue
 
             logger.info(f"len data: {len(data)}")
